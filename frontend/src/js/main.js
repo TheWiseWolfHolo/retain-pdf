@@ -1,6 +1,7 @@
 import { $ } from "./dom.js";
 import {
   apiBase,
+  applyModelConfigInputs,
   applyKeyInputs,
   defaultMineruToken,
   defaultModelApiKey,
@@ -43,12 +44,14 @@ import {
   fetchJobArtifactsManifest,
   fetchJobList,
   fetchJobPayload,
+  fetchModelCatalog,
   fetchProtected,
   submitJson,
   submitUploadRequest,
   validateMineruToken,
 } from "./network.js";
 import { state } from "./state.js";
+import { resolvePreferredModel } from "./model-catalog.js";
 import {
   clearFileInputValue,
   prepareFilePicker,
@@ -82,13 +85,13 @@ function setMineruValidationMessage(message, tone = "") {
   el.classList.toggle("is-error", tone === "error");
 }
 
-function setDeepSeekValidationMessage(message, tone = "") {
-  const el = $("browser-deepseek-validation");
+function setModelValidationMessage(message, tone = "") {
+  const el = $("browser-model-validation");
   if (!el) {
     return;
   }
   const content = `${message || ""}`.trim();
-  el.textContent = content || "可检测 DeepSeek 接口是否连通。";
+  el.textContent = content || "可通过后端代理检测模型接口并获取模型列表。";
   el.classList.toggle("hidden", !content);
   el.classList.toggle("is-valid", tone === "valid");
   el.classList.toggle("is-error", tone === "error");
@@ -162,42 +165,98 @@ async function ensureMineruTokenReady() {
   return false;
 }
 
-async function runDeepSeekConnectivityCheck(apiKey, { showResult = true } = {}) {
+function effectiveModelBaseUrl() {
+  return ($("model_base_url")?.value || defaultModelBaseUrl()).trim();
+}
+
+function effectiveModelName() {
+  return ($("model_name")?.value || defaultModelName()).trim();
+}
+
+function setModelCatalogOptions(items = [], preferredModel = "") {
+  const select = $("browser-model-select");
+  if (!select) {
+    return;
+  }
+
+  const currentInput = $("browser-model-id");
+  const normalizedItems = Array.isArray(items) ? items : [];
+  const preferred = resolvePreferredModel(normalizedItems, preferredModel);
+
+  select.innerHTML = "";
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = normalizedItems.length
+    ? "从列表中选择模型，也可手动填写模型 ID"
+    : "先填写 Base URL 和 API Key，再获取模型列表";
+  select.appendChild(placeholder);
+
+  for (const item of normalizedItems) {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.textContent = item.ownedBy ? `${item.id} · ${item.ownedBy}` : item.id;
+    select.appendChild(option);
+  }
+
+  if (preferred) {
+    select.value = preferred;
+    if (currentInput && !currentInput.value.trim()) {
+      currentInput.value = preferred;
+    }
+  } else if (!currentInput?.value?.trim()) {
+    select.value = "";
+  }
+}
+
+async function runModelCatalogFetch(baseUrl, apiKey, { showResult = true } = {}) {
+  const resolvedBaseUrl = `${baseUrl || ""}`.trim();
   const modelApiKey = `${apiKey || ""}`.trim();
+
+  if (!resolvedBaseUrl) {
+    if (showResult) {
+      setModelValidationMessage("请先填写模型 Base URL。", "error");
+    }
+    return { ok: false, status: "missing_base_url", items: [] };
+  }
+
   if (!modelApiKey) {
     if (showResult) {
-      setDeepSeekValidationMessage("请先填写 DeepSeek Key。", "error");
+      setModelValidationMessage("请先填写模型 API Key。", "error");
     }
-    return { ok: false, status: 0 };
+    return { ok: false, status: "missing_api_key", items: [] };
   }
+
   if (showResult) {
-    setDeepSeekValidationMessage("正在检测 DeepSeek 接口…");
+    setModelValidationMessage("正在获取模型列表…");
   }
-  const baseUrl = defaultModelBaseUrl().replace(/\/$/, "");
   try {
-    const resp = await fetch(`${baseUrl}/models`, {
-      headers: {
-        Authorization: `Bearer ${modelApiKey}`,
-      },
+    const result = await fetchModelCatalog(API_PREFIX, {
+      base_url: resolvedBaseUrl,
+      api_key: modelApiKey,
     });
-    if (resp.ok) {
-      if (showResult) {
-        setDeepSeekValidationMessage("DeepSeek 接口连接成功。", "valid");
-      }
-      return { ok: true, status: resp.status };
-    }
-    const summary = resp.status === 401
-      ? "DeepSeek Key 无效或已过期。"
-      : `DeepSeek 接口返回 ${resp.status}。`;
+    const items = Array.isArray(result.items) ? result.items : [];
+    state.modelCatalogItems = items;
+    setModelCatalogOptions(items, $("browser-model-id")?.value || effectiveModelName());
+
     if (showResult) {
-      setDeepSeekValidationMessage(summary, "error");
+      const summary = result.summary || (items.length
+        ? `已获取 ${items.length} 个模型`
+        : "模型接口可访问，但未返回可用模型");
+      setModelValidationMessage(summary, result.ok ? "valid" : "error");
     }
-    return { ok: false, status: resp.status, summary };
+
+    return {
+      ...result,
+      items,
+    };
   } catch (_err) {
     if (showResult) {
-      setDeepSeekValidationMessage("DeepSeek 接口检测失败，请检查网络或浏览器跨域限制。", "error");
+      setModelValidationMessage("模型接口检测失败，请检查 Base URL、后端连通性或上游配置。", "error");
     }
-    return { ok: false, status: 0 };
+    state.modelCatalogItems = [];
+    setModelCatalogOptions([], $("browser-model-id")?.value || effectiveModelName());
+    return { ok: false, status: "network_error", items: [] };
   }
 }
 
@@ -302,8 +361,8 @@ function collectRunPayload() {
     },
     translation: {
       mode: DEFAULT_MODE,
-      model: defaultModelName(),
-      base_url: defaultModelBaseUrl(),
+      model: effectiveModelName(),
+      base_url: effectiveModelBaseUrl(),
       api_key: $("api_key").value || defaultModelApiKey(),
       workers: DEFAULT_WORKERS,
       batch_size: DEFAULT_BATCH_SIZE,
@@ -836,34 +895,63 @@ function browserCredentialElements() {
   return {
     dialog: $("browser-credentials-dialog"),
     mineruInput: $("browser-mineru-token"),
+    modelBaseUrlInput: $("browser-model-base-url"),
     apiKeyInput: $("browser-api-key"),
+    modelInput: $("browser-model-id"),
+    modelSelect: $("browser-model-select"),
     trigger: $("credentials-btn"),
   };
 }
 
 function syncBrowserDialogFromHiddenInputs() {
-  const { mineruInput, apiKeyInput } = browserCredentialElements();
+  const {
+    mineruInput,
+    modelBaseUrlInput,
+    apiKeyInput,
+    modelInput,
+  } = browserCredentialElements();
   if (mineruInput) {
     mineruInput.value = $("mineru_token").value || "";
+  }
+  if (modelBaseUrlInput) {
+    modelBaseUrlInput.value = effectiveModelBaseUrl();
   }
   if (apiKeyInput) {
     apiKeyInput.value = $("api_key").value || "";
   }
+  if (modelInput) {
+    modelInput.value = effectiveModelName();
+  }
+  setModelCatalogOptions(state.modelCatalogItems, effectiveModelName());
   setMineruValidationMessage("", "");
-  setDeepSeekValidationMessage("", "");
+  setModelValidationMessage("", "");
 }
 
 function persistBrowserCredentialsFromDialog() {
-  const { mineruInput, apiKeyInput } = browserCredentialElements();
+  const {
+    mineruInput,
+    modelBaseUrlInput,
+    apiKeyInput,
+    modelInput,
+  } = browserCredentialElements();
   applyKeyInputs(
     mineruInput?.value?.trim() || "",
     apiKeyInput?.value?.trim() || "",
+  );
+  applyModelConfigInputs(
+    modelBaseUrlInput?.value?.trim() || defaultModelBaseUrl(),
+    modelInput?.value?.trim() || defaultModelName(),
   );
   saveBrowserStoredConfig();
 }
 
 function hasBrowserCredentials() {
-  return Boolean(($("mineru_token").value || "").trim() && ($("api_key").value || "").trim());
+  return Boolean(
+    ($("mineru_token").value || "").trim()
+    && ($("api_key").value || "").trim()
+    && effectiveModelBaseUrl()
+    && effectiveModelName(),
+  );
 }
 
 function updateCredentialGate() {
@@ -907,10 +995,10 @@ function openBrowserCredentialsDialog() {
 }
 
 async function handleBrowserCredentialValidate() {
-  const { mineruInput, apiKeyInput } = browserCredentialElements();
+  const { mineruInput, modelBaseUrlInput, apiKeyInput } = browserCredentialElements();
   await Promise.all([
     runMineruTokenValidation(mineruInput?.value || "", { showResult: true }),
-    runDeepSeekConnectivityCheck(apiKeyInput?.value || "", { showResult: true }),
+    runModelCatalogFetch(modelBaseUrlInput?.value || "", apiKeyInput?.value || "", { showResult: true }),
   ]);
 }
 
@@ -919,16 +1007,32 @@ async function handleBrowserMineruValidate() {
   await runMineruTokenValidation(mineruInput?.value || "", { showResult: true });
 }
 
-async function handleBrowserDeepSeekValidate() {
-  const { apiKeyInput } = browserCredentialElements();
-  await runDeepSeekConnectivityCheck(apiKeyInput?.value || "", { showResult: true });
+async function handleBrowserModelFetch() {
+  const { modelBaseUrlInput, apiKeyInput } = browserCredentialElements();
+  await runModelCatalogFetch(modelBaseUrlInput?.value || "", apiKeyInput?.value || "", { showResult: true });
 }
 
 async function handleBrowserCredentialSave() {
-  const { mineruInput } = browserCredentialElements();
+  const {
+    mineruInput,
+    modelBaseUrlInput,
+    apiKeyInput,
+    modelInput,
+  } = browserCredentialElements();
   const validation = await runMineruTokenValidation(mineruInput?.value || "", { showResult: true });
   if (!validation.ok) {
     return;
+  }
+  const modelId = `${modelInput?.value || ""}`.trim();
+  if (!modelId) {
+    const modelProbe = await runModelCatalogFetch(
+      modelBaseUrlInput?.value || "",
+      apiKeyInput?.value || "",
+      { showResult: true },
+    );
+    if (!modelProbe.ok || !($("browser-model-id")?.value || "").trim()) {
+      return;
+    }
   }
   persistBrowserCredentialsFromDialog();
   updateCredentialGate();
@@ -951,6 +1055,10 @@ function initializePage() {
   applyKeyInputs(
     browserStored.mineruToken || defaultMineruToken(),
     browserStored.modelApiKey || defaultModelApiKey(),
+  );
+  applyModelConfigInputs(
+    browserStored.modelBaseUrl || defaultModelBaseUrl(),
+    browserStored.model || defaultModelName(),
   );
   [
     "query-dialog",
@@ -978,6 +1086,8 @@ function initializePage() {
   $("file").addEventListener("change", handleFileSelected);
   $("mineru_token").addEventListener("input", saveBrowserStoredConfig);
   $("api_key").addEventListener("input", saveBrowserStoredConfig);
+  $("model_base_url")?.addEventListener("input", saveBrowserStoredConfig);
+  $("model_name")?.addEventListener("input", saveBrowserStoredConfig);
   $("job-form").addEventListener("submit", submitForm);
   $("open-query-btn").addEventListener("click", openQueryDialog);
   $("refresh-jobs-btn")?.addEventListener("click", () => loadRecentJobs({ reset: true }));
@@ -1016,11 +1126,31 @@ function initializePage() {
     resetMineruValidationCache();
     setMineruValidationMessage("", "");
   });
+  $("browser-model-base-url")?.addEventListener("input", () => {
+    state.modelCatalogItems = [];
+    setModelCatalogOptions([], $("browser-model-id")?.value || "");
+    setModelValidationMessage("", "");
+  });
   $("browser-api-key")?.addEventListener("input", () => {
-    setDeepSeekValidationMessage("", "");
+    state.modelCatalogItems = [];
+    setModelCatalogOptions([], $("browser-model-id")?.value || "");
+    setModelValidationMessage("", "");
+  });
+  $("browser-model-id")?.addEventListener("input", () => {
+    setModelValidationMessage("", "");
+  });
+  $("browser-model-select")?.addEventListener("change", (event) => {
+    const target = event.currentTarget;
+    if (!(target instanceof HTMLSelectElement)) {
+      return;
+    }
+    if ($("browser-model-id") && target.value) {
+      $("browser-model-id").value = target.value;
+    }
+    setModelValidationMessage("", "");
   });
   $("browser-mineru-validate-btn")?.addEventListener("click", handleBrowserMineruValidate);
-  $("browser-deepseek-validate-btn")?.addEventListener("click", handleBrowserDeepSeekValidate);
+  $("browser-model-fetch-btn")?.addEventListener("click", handleBrowserModelFetch);
   $("browser-credentials-save-btn")?.addEventListener("click", handleBrowserCredentialSave);
   document.querySelectorAll(".detail-tab").forEach((tab) => {
     tab.addEventListener("click", () => {

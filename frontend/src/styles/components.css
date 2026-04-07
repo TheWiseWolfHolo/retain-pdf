@@ -205,11 +205,30 @@
     white-space: nowrap;
   }
 
+  .credential-card-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(29, 29, 31, 0.06);
+    color: #3a3a3c;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
   .credential-card-actions {
     display: flex;
     align-items: center;
     justify-content: flex-start;
     gap: 10px;
+  }
+
+  .credential-card-actions-spread {
+    justify-content: space-between;
+    align-items: flex-start;
   }
 
   .credential-card-actions button.secondary {
@@ -225,6 +244,7 @@
     font-size: 12px;
     line-height: 1.45;
     color: #6e6e73;
+    max-width: 280px;
   }
 
   .token-inline-status.is-valid {

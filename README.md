@@ -4,6 +4,8 @@
   <img src="image/RetainPDF-github.svg" alt="RetainPDF" width="320" />
 </p>
 
+> 本仓库当前维护分支用于个人增强与本地部署优化，基于原项目 [wxyhgk/retain-pdf](https://github.com/wxyhgk/retain-pdf) 继续修改。感谢原作者与原项目提供的整体架构、Rust API / Python pipeline 设计以及 Docker 交付基础。
+
 科学无国界，但文献有语言墙。这个项目面向科研论文、技术手册、教材与扫描型 PDF，目标不是只把文字翻出来，而是在翻译后尽量保留原始版面、公式位置、双栏结构和阅读体验。
 
 它当前已经打通一条完整链路：上传 PDF 或 OCR 结果，经过 OCR、翻译、排版重建与产物登记，最终输出保留排版的中文 PDF，并支持 Markdown、JSON、Typst 与调试产物下载。
@@ -21,6 +23,7 @@
 - 面向扫描型 PDF、复杂行内公式、双栏论文、教材类长文档
 - 尽量避免代码块、命令行参数、公式占位符被误翻
 - 支持规则配置和自定义翻译策略，可按文档类型调整翻译提示与术语倾向
+- 浏览器端支持自定义模型 `Base URL`、`API Key` 与 `Model ID`，可通过后端代理拉取模型列表，适配 OpenAI-compatible 网关
 - 表格识别支持按任务开关控制，适合在高精度识别和稳定性之间做取舍
 - 提供仍在持续打磨的高精度模式，目标是在复杂科研文档、混排页面和疑难结构场景下进一步逼近甚至超越常见 OCR 方案的效果上限
 - 高精度模式也是我后续最核心的演进方向之一
@@ -107,7 +110,7 @@
 基本步骤：
 
 ```bash
-git clone https://github.com/wxyhgk/retain-pdf.git
+git clone https://github.com/TheWiseWolfHolo/retain-pdf.git
 cd retain-pdf/docker/delivery
 docker compose up -d
 ```
@@ -123,6 +126,31 @@ http://127.0.0.1:40001
 - `40001`：前端页面
 - `41000`：Rust API
 - `42000`：简便同步接口
+
+当前浏览器版新增：
+
+- 可在“接口设置”里直接填写模型 `Base URL`
+- 可填写模型 `API Key`
+- 可获取模型列表并选择 / 回填 `Model ID`
+- 默认注入值仍然可由 `docker/web.env` 提供，但最终用户也可以在浏览器中覆盖
+
+### 本地构建增强版镜像
+
+如果你要把当前 fork 的前后端改动一起打进自己的 Docker 镜像，可以直接在仓库根目录执行：
+
+```bash
+docker build -f docker/Dockerfile.app -t retainpdf-app:open-model-config .
+docker build -f docker/Dockerfile.web -t retainpdf-web:open-model-config .
+```
+
+然后切到交付目录，用刚构建好的镜像启动：
+
+```bash
+cd docker/delivery
+APP_IMAGE=retainpdf-app:open-model-config \
+WEB_IMAGE=retainpdf-web:open-model-config \
+docker compose up -d
+```
 
 ### Docker 更新
 

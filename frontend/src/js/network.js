@@ -127,6 +127,10 @@ export async function validateMineruToken(apiPrefix, payload) {
   return submitJson(`${apiBase()}${apiPrefix}/providers/mineru/validate-token`, payload);
 }
 
+export async function fetchModelCatalog(apiPrefix, payload) {
+  return submitJson(`${apiBase()}${apiPrefix}/providers/openai/models`, payload);
+}
+
 export async function fetchProtected(url, options = {}) {
   const headers = buildApiHeaders(options.headers || {});
   return fetch(url, {

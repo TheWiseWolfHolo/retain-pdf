@@ -1,5 +1,7 @@
 
 
+> 当前这份交付目录已用于个人增强版分支，基于原项目 [wxyhgk/retain-pdf](https://github.com/wxyhgk/retain-pdf) 继续维护。感谢原作者提供完整的 Docker 交付底座、前后端拆分方式与运行时配置结构。
+
 **痛点**
 
 外文论文、教材、技术文档信息密度高，但读起来费劲：
@@ -74,7 +76,7 @@ docker compose version
 ## 3. 拉取 GitHub 项目
 
 ```bash
-git clone https://github.com/wxyhgk/retain-pdf.git
+git clone https://github.com/TheWiseWolfHolo/retain-pdf.git
 cd retain-pdf
 ```
 
@@ -123,11 +125,11 @@ http://127.0.0.1:40001
 - `FRONT_MINERU_TOKEN`
   前端默认带出的 MinerU token。留空时，最终用户自己在页面弹窗里填写。
 - `FRONT_MODEL_API_KEY`
-  前端默认带出的模型 API key。留空时由最终用户自己填写。
+  前端默认带出的模型 API key。留空时由最终用户自己填写；浏览器端现在也支持在接口设置弹窗中覆盖。
 - `FRONT_MODEL`
-  前端默认模型名，例如 `deepseek-chat`。
+  前端默认模型名，例如 `deepseek-chat`。浏览器端可继续改成获取到的模型 ID。
 - `FRONT_BASE_URL`
-  前端默认模型服务地址，例如 `https://api.deepseek.com/v1`。
+  前端默认模型服务地址，例如 `https://api.deepseek.com/v1`。浏览器端可直接改成任意 OpenAI-compatible Base URL。
 - `FRONT_PROVIDER_PRESET`
   前端默认 provider 预设。当前 Docker 公共版只保留 `deepseek`。
 
@@ -182,6 +184,32 @@ http://127.0.0.1:40001
 - `FRONT_BASE_URL`
 
 如果留空，最终用户需要在页面右上角的“API 配置”弹窗中自己填写。
+
+### 浏览器侧新增能力
+
+当前 Docker 浏览器版额外支持：
+
+- 手动填写模型 `Base URL`
+- 手动填写模型 `API Key`
+- 通过后端代理请求 `/models` 获取模型列表，避免常见浏览器 CORS 限制
+- 选择模型列表中的 `Model ID`，或手动填写自定义模型名
+
+## 如果你要构建当前 fork 的本地镜像
+
+在仓库根目录执行：
+
+```bash
+docker build -f docker/Dockerfile.app -t retainpdf-app:open-model-config .
+docker build -f docker/Dockerfile.web -t retainpdf-web:open-model-config .
+```
+
+然后再回到交付目录启动：
+
+```bash
+APP_IMAGE=retainpdf-app:open-model-config \
+WEB_IMAGE=retainpdf-web:open-model-config \
+docker compose up -d
+```
 
 ## 如果要换成你自己的镜像版本
 

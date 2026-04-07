@@ -30,18 +30,32 @@
         <section class="credential-card">
           <div class="credential-card-head">
             <div>
-              <h3>DeepSeek</h3>
-              <p>用于正文翻译和模型调用。</p>
+              <h3>模型服务</h3>
+              <p>支持 OpenAI-compatible 服务，自定义 Base URL、Key 与模型 ID。</p>
             </div>
-            <a class="credential-card-link" href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer">获取 Key</a>
+            <span class="credential-card-chip">OpenAI-compatible</span>
           </div>
           <label>
-            <span>DeepSeek Key</span>
-            <input id="browser-api-key" type="text" autocomplete="off" placeholder="填写 DeepSeek API Key" />
+            <span>Base URL</span>
+            <input id="browser-model-base-url" type="text" autocomplete="off" placeholder="例如 https://api.deepseek.com/v1" />
           </label>
-          <div class="credential-card-actions">
-            <button id="browser-deepseek-validate-btn" type="button" class="secondary">检测 DeepSeek</button>
-            <span id="browser-deepseek-validation" class="token-inline-status hidden">可检测 DeepSeek 接口是否连通。</span>
+          <label>
+            <span>API Key</span>
+            <input id="browser-api-key" type="text" autocomplete="off" placeholder="填写模型 API Key" />
+          </label>
+          <label>
+            <span>模型 ID</span>
+            <input id="browser-model-id" type="text" autocomplete="off" placeholder="可手动填写，也可先获取模型列表" />
+          </label>
+          <label>
+            <span>模型列表</span>
+            <select id="browser-model-select">
+              <option value="">先填写 Base URL 和 API Key，再获取模型列表</option>
+            </select>
+          </label>
+          <div class="credential-card-actions credential-card-actions-spread">
+            <button id="browser-model-fetch-btn" type="button" class="secondary">获取模型</button>
+            <span id="browser-model-validation" class="token-inline-status hidden">可通过后端代理检测接口并获取模型列表。</span>
           </div>
         </section>
       </div>
@@ -66,7 +80,7 @@
           <input id="setup-mineru-token" type="text" autocomplete="off" />
         </label>
         <label>
-          <span>DeepSeek Key</span>
+          <span>模型 API Key</span>
           <input id="setup-model-api-key" type="text" autocomplete="off" />
         </label>
       </div>
@@ -91,7 +105,7 @@
           <input id="settings-mineru-token" type="text" autocomplete="off" />
         </label>
         <label>
-          <span>DeepSeek Key</span>
+          <span>模型 API Key</span>
           <input id="settings-model-api-key" type="text" autocomplete="off" />
         </label>
       </div>

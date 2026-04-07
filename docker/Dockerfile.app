@@ -1,4 +1,4 @@
-FROM rust:1.81-slim-bookworm AS builder
+FROM rust:1.88-slim-bookworm AS builder
 
 WORKDIR /build
 
@@ -61,7 +61,8 @@ COPY backend/scripts /app/backend/scripts
 COPY backend/rust_api/auth.local.example.json /app/backend/rust_api/auth.local.example.json
 COPY docker/entrypoint-app.sh /entrypoint.sh
 
-RUN chmod +x /entrypoint.sh \
+RUN sed -i 's/\r$//' /entrypoint.sh \
+    && chmod +x /entrypoint.sh \
     && mkdir -p /app/backend/rust_api /app/backend/scripts /data/uploads /data/downloads /data/db /data/jobs
 
 VOLUME ["/data"]

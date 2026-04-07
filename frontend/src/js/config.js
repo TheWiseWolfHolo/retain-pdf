@@ -4,6 +4,7 @@ import {
   DEFAULT_BASE_URL,
   DEFAULT_MODEL,
 } from "./constants.js";
+import { normalizeBrowserStoredConfig } from "./model-catalog.js";
 
 let runtimeConfig = { ...(window.__FRONT_RUNTIME_CONFIG__ || {}) };
 
@@ -71,17 +72,29 @@ export function setRuntimeConfig(nextConfig = {}) {
 
 export function loadBrowserStoredConfig() {
   if (isDesktopMode() || typeof window.localStorage === "undefined") {
-    return {};
+    return normalizeBrowserStoredConfig({}, {
+      defaultBaseUrl: defaultModelBaseUrl(),
+      defaultModel: defaultModelName(),
+    });
   }
   try {
     const raw = window.localStorage.getItem(BROWSER_CONFIG_STORAGE_KEY);
     if (!raw) {
-      return {};
+      return normalizeBrowserStoredConfig({}, {
+        defaultBaseUrl: defaultModelBaseUrl(),
+        defaultModel: defaultModelName(),
+      });
     }
     const parsed = JSON.parse(raw);
-    return typeof parsed === "object" && parsed ? parsed : {};
+    return normalizeBrowserStoredConfig(typeof parsed === "object" && parsed ? parsed : {}, {
+      defaultBaseUrl: defaultModelBaseUrl(),
+      defaultModel: defaultModelName(),
+    });
   } catch (_err) {
-    return {};
+    return normalizeBrowserStoredConfig({}, {
+      defaultBaseUrl: defaultModelBaseUrl(),
+      defaultModel: defaultModelName(),
+    });
   }
 }
 
@@ -92,6 +105,8 @@ export function saveBrowserStoredConfig() {
   const payload = {
     mineruToken: $("mineru_token")?.value || "",
     modelApiKey: $("api_key")?.value || "",
+    modelBaseUrl: $("model_base_url")?.value || defaultModelBaseUrl(),
+    model: $("model_name")?.value || defaultModelName(),
   };
   try {
     window.localStorage.setItem(BROWSER_CONFIG_STORAGE_KEY, JSON.stringify(payload));
@@ -114,6 +129,24 @@ export function applyKeyInputs(mineruToken, modelApiKey) {
   }
   if ($("settings-model-api-key")) {
     $("settings-model-api-key").value = modelApiKey || "";
+  }
+}
+
+export function applyModelConfigInputs(modelBaseUrl, modelName) {
+  const resolvedBaseUrl = modelBaseUrl || defaultModelBaseUrl();
+  const resolvedModel = modelName || defaultModelName();
+
+  if ($("model_base_url")) {
+    $("model_base_url").value = resolvedBaseUrl;
+  }
+  if ($("model_name")) {
+    $("model_name").value = resolvedModel;
+  }
+  if ($("browser-model-base-url")) {
+    $("browser-model-base-url").value = resolvedBaseUrl;
+  }
+  if ($("browser-model-id")) {
+    $("browser-model-id").value = resolvedModel;
   }
 }
 
