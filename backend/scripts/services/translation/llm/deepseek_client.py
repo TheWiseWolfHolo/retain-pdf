@@ -12,6 +12,9 @@ from urllib3.util.retry import Retry
 
 from foundation.shared.prompt_loader import load_prompt
 from foundation.shared.local_env import get_secret
+from services.translation.llm.request_limits import wait_for_request_slot
+from services.translation.llm.target_language import build_target_language_guidance
+from services.translation.llm.target_language import normalize_target_language
 from services.translation.llm.decision_hints import build_decision_hints
 from services.translation.llm.style_hints import structure_style_hint
 
@@ -53,10 +56,15 @@ def _build_translation_system_prompt(
     mode: str = "fast",
     response_style: str = "tagged",
     include_sci_decision: bool = True,
+    target_language: str = "zh-CN",
 ) -> str:
     system_prompt = load_prompt("translation_system.txt")
     if response_style != "json":
         system_prompt = system_prompt.replace(_JSON_ONLY_INSTRUCTION, "").strip()
+    system_prompt = (
+        f"{system_prompt}\n\n"
+        f"{build_target_language_guidance(target_language)}"
+    ).strip()
     if domain_guidance.strip():
         system_prompt = f"{system_prompt}\n\nDocument-specific translation guidance:\n{domain_guidance.strip()}"
     if mode == "sci" and include_sci_decision:
@@ -64,11 +72,17 @@ def _build_translation_system_prompt(
     return system_prompt
 
 
-def build_messages(batch: list[dict], domain_guidance: str = "", mode: str = "fast") -> list[dict[str, str]]:
+def build_messages(
+    batch: list[dict],
+    domain_guidance: str = "",
+    mode: str = "fast",
+    target_language: str = "zh-CN",
+) -> list[dict[str, str]]:
     system_prompt = _build_translation_system_prompt(
         domain_guidance=domain_guidance,
         mode=mode,
         response_style="tagged",
+        target_language=target_language,
     )
     if mode != "sci":
         system_prompt = (
@@ -105,6 +119,7 @@ def build_messages(batch: list[dict], domain_guidance: str = "", mode: str = "fa
         items_payload.append(item_payload)
     user_payload = {
         "task": load_prompt("translation_task.txt"),
+        "target_language": normalize_target_language(target_language),
         "items": items_payload,
     }
     if groups:
@@ -127,16 +142,19 @@ def build_single_item_fallback_messages(
     domain_guidance: str = "",
     mode: str = "fast",
     structured_decision: bool = False,
+    target_language: str = "zh-CN",
 ) -> list[dict[str, str]]:
     if mode == "sci" and structured_decision:
         system_prompt = _build_translation_system_prompt(
             domain_guidance=domain_guidance,
             mode=mode,
             response_style="tagged",
+            target_language=target_language,
         )
         user_prompt = json.dumps(
             {
                 "task": load_prompt("translation_task.txt"),
+                "target_language": normalize_target_language(target_language),
                 "items": [
                     {
                         "item_id": item["item_id"],
@@ -161,6 +179,7 @@ def build_single_item_fallback_messages(
         mode=mode,
         response_style="plain_text",
         include_sci_decision=False,
+        target_language=target_language,
     )
     fallback_system = (
         f"{system_prompt}\n"
@@ -170,6 +189,7 @@ def build_single_item_fallback_messages(
     )
     user_payload: dict[str, Any] = {
         "task": load_prompt("translation_task.txt"),
+        "target_language": normalize_target_language(target_language),
         "item": {
             "item_id": item["item_id"],
             "source_text": item["protected_source_text"],
@@ -418,7 +438,13 @@ def request_chat_content(
     for attempt in range(1, HTTP_RETRY_ATTEMPTS + 1):
         started = time.perf_counter()
         try:
+            rate_limit_delay = wait_for_request_slot()
             if request_label:
+                if rate_limit_delay > 0:
+                    print(
+                        f"{request_label}: rate-limit wait {rate_limit_delay:.2f}s",
+                        flush=True,
+                    )
                 print(
                     f"{request_label}: http attempt {attempt}/{HTTP_RETRY_ATTEMPTS} -> {model} {chat_completions_url(base_url)} timeout={timeout}s stream={use_stream}",
                     flush=True,
@@ -472,10 +498,18 @@ def translate_batch(
     model: str = "deepseek-chat",
     base_url: str = DEFAULT_BASE_URL,
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, str]:
     from .retrying_translator import translate_batch as _translate_batch
 
-    return _translate_batch(batch, api_key=api_key, model=model, base_url=base_url, mode=mode)
+    return _translate_batch(
+        batch,
+        api_key=api_key,
+        model=model,
+        base_url=base_url,
+        mode=mode,
+        target_language=target_language,
+    )
 
 
 def get_api_key(explicit_api_key: str = "", env_var: str = DEFAULT_API_KEY_ENV, required: bool = True) -> str:

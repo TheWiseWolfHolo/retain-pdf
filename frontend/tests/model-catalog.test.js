@@ -32,6 +32,8 @@ test("normalizeBrowserStoredConfig falls back to runtime defaults when values ar
     {
       defaultBaseUrl: "https://gateway.example.com/v1",
       defaultModel: "gpt-4.1-mini",
+      defaultTargetLanguage: "zh-CN",
+      defaultWorkers: 100,
     },
   );
 
@@ -40,6 +42,10 @@ test("normalizeBrowserStoredConfig falls back to runtime defaults when values ar
     modelApiKey: "sk-local",
     modelBaseUrl: "https://gateway.example.com/v1",
     model: "gpt-4.1-mini",
+    targetLanguage: "zh-CN",
+    workers: 100,
+    rateLimitQps: 0,
+    rateLimitRpm: 0,
   });
 });
 
@@ -52,10 +58,16 @@ test("normalizeBrowserStoredConfig trims explicit model config", async () => {
       modelApiKey: "  sk-local  ",
       modelBaseUrl: " https://proxy.example.com/v1/ ",
       model: " claude-3.7-sonnet ",
+      targetLanguage: " ja ",
+      workers: " 6 ",
+      rateLimitQps: " 2 ",
+      rateLimitRpm: " 90 ",
     },
     {
       defaultBaseUrl: "https://fallback.example.com/v1",
       defaultModel: "fallback-model",
+      defaultTargetLanguage: "zh-CN",
+      defaultWorkers: 100,
     },
   );
 
@@ -64,5 +76,9 @@ test("normalizeBrowserStoredConfig trims explicit model config", async () => {
     modelApiKey: "sk-local",
     modelBaseUrl: "https://proxy.example.com/v1/",
     model: "claude-3.7-sonnet",
+    targetLanguage: "ja",
+    workers: 6,
+    rateLimitQps: 2,
+    rateLimitRpm: 90,
   });
 });

@@ -20,6 +20,7 @@ def translate_book_pipeline(
     batch_size: int = 8,
     workers: int = 1,
     mode: str = "fast",
+    target_language: str = "zh-CN",
     classify_batch_size: int = 12,
     skip_title_translation: bool = False,
     model: str = "deepseek-chat",
@@ -63,6 +64,7 @@ def translate_book_pipeline(
         model=model,
         base_url=base_url,
         mode=mode,
+        target_language=target_language,
         classify_batch_size=max(1, classify_batch_size),
         skip_title_translation=skip_title_translation,
         sci_cutoff_page_idx=policy_config.sci_cutoff_page_idx,
@@ -84,4 +86,5 @@ def translate_book_pipeline(
         "domain_context": policy_config.domain_context,
         "rule_profile_name": policy_config.rule_profile_name,
         "custom_rules_text": policy_config.custom_rules_text,
+        "target_language": target_language,
     }

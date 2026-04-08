@@ -34,6 +34,7 @@ class FallbackPolicy:
 @dataclass(frozen=True)
 class TranslationControlContext:
     mode: str = "fast"
+    target_language: str = "zh-CN"
     domain_guidance: str = ""
     rule_guidance: str = ""
     request_label: str = ""
@@ -63,6 +64,7 @@ class TranslationControlContext:
 def build_translation_control_context(
     *,
     mode: str = "fast",
+    target_language: str = "zh-CN",
     domain_guidance: str = "",
     rule_guidance: str = "",
     request_label: str = "",
@@ -71,6 +73,7 @@ def build_translation_control_context(
 ) -> TranslationControlContext:
     return TranslationControlContext(
         mode=mode,
+        target_language=target_language,
         domain_guidance=domain_guidance,
         rule_guidance=rule_guidance,
         request_label=request_label,

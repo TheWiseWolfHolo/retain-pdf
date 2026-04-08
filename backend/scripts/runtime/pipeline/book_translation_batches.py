@@ -47,6 +47,7 @@ def translate_pending_units(
     base_url: str,
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> None:
     flat_payload: list[dict] = []
     item_to_page: dict[str, int] = {}
@@ -83,6 +84,7 @@ def translate_pending_units(
                 request_label=batch_label,
                 domain_guidance=domain_guidance,
                 mode=mode,
+                target_language=target_language,
             )
             apply_translated_text_map(flat_payload, translated)
             dirty_pages.update(touched_pages_for_batch(translated, item_to_page, unit_to_pages))
@@ -117,6 +119,7 @@ def translate_pending_units(
                 request_label=f"book: batch {index}/{total_batches}",
                 domain_guidance=domain_guidance,
                 mode=mode,
+                target_language=target_language,
             ): (index, batch)
             for index, batch in enumerate(batches, start=1)
         }

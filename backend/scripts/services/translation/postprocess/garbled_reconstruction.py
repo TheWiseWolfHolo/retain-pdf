@@ -9,6 +9,8 @@ from services.translation.llm.deepseek_client import extract_json_text
 from services.translation.llm.deepseek_client import get_api_key
 from services.translation.llm.deepseek_client import normalize_base_url
 from services.translation.llm.deepseek_client import request_chat_content
+from services.translation.llm.target_language import build_target_language_guidance
+from services.translation.llm.target_language import normalize_target_language
 
 
 GARBLED_LEGACY_STYLE_RE = re.compile(r"\\(?:bf|rm|it|sf|tt|pmb)\b")
@@ -138,21 +140,30 @@ def _build_formula_hints(item: dict) -> list[str]:
     return hints[:12]
 
 
-def _repair_item_translation(item: dict, *, api_key: str, model: str, base_url: str) -> str:
+def _repair_item_translation(
+    item: dict,
+    *,
+    api_key: str,
+    model: str,
+    base_url: str,
+    target_language: str,
+) -> str:
     source_text = _source_text(item)
     formula_hints = _build_formula_hints(item)
+    resolved_target_language = normalize_target_language(target_language)
     messages = [
         {
             "role": "system",
             "content": (
-                "You repair corrupted OCR scientific text blocks and translate them into fluent Simplified Chinese.\n"
+                "You repair corrupted OCR scientific text blocks and translate them into fluent scientific prose.\n"
                 "The input may contain duplicated fragments, broken line wraps, and fake LaTeX formula noise.\n"
                 "Reconstruct the intended meaning conservatively.\n"
                 "Do not mention that the OCR is corrupted.\n"
                 "Return one JSON object with key translated_text only.\n"
-                "Output plain Chinese text only inside translated_text.\n"
+                "Output only the repaired translation inside translated_text.\n"
                 "Do not emit LaTeX commands like \\\\bf, \\\\mathbf, \\\\mathrm.\n"
                 "If a material or symbol is obvious, keep it in natural scientific notation such as alpha-Al2O3 or α-Al2O3.\n"
+                f"{build_target_language_guidance(resolved_target_language)}\n"
             ),
         },
         {
@@ -160,6 +171,7 @@ def _repair_item_translation(item: dict, *, api_key: str, model: str, base_url: 
             "content": json.dumps(
                 {
                     "item_id": item.get("item_id", ""),
+                    "target_language": resolved_target_language,
                     "source_text": source_text,
                     "formula_hints": formula_hints,
                 },
@@ -237,6 +249,7 @@ def _run_reconstruction_candidates(
     model: str,
     base_url: str,
     workers: int,
+    target_language: str,
 ) -> tuple[int, set[int]]:
     reconstructed = 0
     dirty_pages: set[int] = set()
@@ -261,6 +274,7 @@ def _run_reconstruction_candidates(
                     api_key=resolved_api_key,
                     model=resolved_model,
                     base_url=resolved_base_url,
+                    target_language=target_language,
                 )
             except Exception as exc:
                 print(f"garbled-reconstruct {item.get('item_id', '')}: skipped: {type(exc).__name__}: {exc}", flush=True)
@@ -280,6 +294,7 @@ def _run_reconstruction_candidates(
                 api_key=resolved_api_key,
                 model=resolved_model,
                 base_url=resolved_base_url,
+                target_language=target_language,
             ): (key, item)
             for key, item in candidate_list
         }
@@ -305,6 +320,7 @@ def reconstruct_garbled_items(
     model: str,
     base_url: str,
     workers: int,
+    target_language: str = "zh-CN",
 ) -> dict[str, int]:
     candidates_by_key, representatives = _collect_candidates(payload)
     if not representatives:
@@ -318,6 +334,7 @@ def reconstruct_garbled_items(
         model=model,
         base_url=base_url,
         workers=workers,
+        target_language=target_language,
     )
     return {"garbled_candidates": len(candidate_list), "garbled_reconstructed": reconstructed}
 
@@ -329,6 +346,7 @@ def reconstruct_garbled_page_payloads(
     model: str,
     base_url: str,
     workers: int,
+    target_language: str = "zh-CN",
 ) -> dict[str, object]:
     flat_payload = [item for page_idx in sorted(page_payloads) for item in page_payloads[page_idx]]
     candidates_by_key, representatives = _collect_candidates(flat_payload)
@@ -347,6 +365,7 @@ def reconstruct_garbled_page_payloads(
         model=model,
         base_url=base_url,
         workers=workers,
+        target_language=target_language,
     )
     return {
         "garbled_candidates": len(candidate_list),

@@ -130,6 +130,14 @@ http://127.0.0.1:40001
   前端默认模型名，例如 `deepseek-chat`。浏览器端可继续改成获取到的模型 ID。
 - `FRONT_BASE_URL`
   前端默认模型服务地址，例如 `https://api.deepseek.com/v1`。浏览器端可直接改成任意 OpenAI-compatible Base URL。
+- `FRONT_TARGET_LANGUAGE`
+  前端默认目标语言，例如 `zh-CN`、`en`、`ja`。浏览器端仍可在接口设置里改。
+- `FRONT_WORKERS`
+  前端默认并发数，浏览器端可在高级控制里覆盖。
+- `FRONT_RATE_LIMIT_QPS`
+  前端默认 QPS 限流。`0` 表示不启用。
+- `FRONT_RATE_LIMIT_RPM`
+  前端默认 RPM 限流。`0` 表示不启用。
 - `FRONT_PROVIDER_PRESET`
   前端默认 provider 预设。当前 Docker 公共版只保留 `deepseek`。
 
@@ -182,6 +190,10 @@ http://127.0.0.1:40001
 - `FRONT_MODEL_API_KEY`
 - `FRONT_MODEL`
 - `FRONT_BASE_URL`
+- `FRONT_TARGET_LANGUAGE`
+- `FRONT_WORKERS`
+- `FRONT_RATE_LIMIT_QPS`
+- `FRONT_RATE_LIMIT_RPM`
 
 如果留空，最终用户需要在页面右上角的“API 配置”弹窗中自己填写。
 
@@ -193,6 +205,18 @@ http://127.0.0.1:40001
 - 手动填写模型 `API Key`
 - 通过后端代理请求 `/models` 获取模型列表，避免常见浏览器 CORS 限制
 - 选择模型列表中的 `Model ID`，或手动填写自定义模型名
+- 选择目标语言（例如简中、繁中、English、日本語等）
+- 在高级控制中同时调整并发数、QPS、RPM
+
+## Windows 一键启动
+
+如果你就是在这份仓库里本地运行，根目录已经带好：
+
+- `启动 RetainPDF.cmd`
+- `停止 RetainPDF.cmd`
+- `重启 RetainPDF.cmd`
+
+直接双击即可，不需要手动打开 Docker Desktop 界面。
 
 ## 如果你要构建当前 fork 的本地镜像
 

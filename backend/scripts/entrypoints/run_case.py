@@ -40,6 +40,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--end-page", type=int, default=-1, help="Zero-based end page index, inclusive. Default is the last page.")
     parser.add_argument("--batch-size", type=int, default=1, help="Number of text items per API call.")
     parser.add_argument("--workers", type=int, default=100, help="Concurrent translation requests.")
+    parser.add_argument("--target-language", type=str, default="zh-CN", help="Target translation language, for example zh-CN, en, ja, ko, de, fr.")
+    parser.add_argument("--rate-limit-qps", type=int, default=0, help="Optional request-per-second cap for model calls. 0 disables it.")
+    parser.add_argument("--rate-limit-rpm", type=int, default=0, help="Optional request-per-minute cap for model calls. 0 disables it.")
     parser.add_argument(
         "--mode",
         type=str,
@@ -192,6 +195,9 @@ def main() -> None:
         model=args.model,
         base_url=args.base_url,
         mode=args.mode,
+        target_language=args.target_language,
+        rate_limit_qps=args.rate_limit_qps,
+        rate_limit_rpm=args.rate_limit_rpm,
         classify_batch_size=args.classify_batch_size,
         skip_title_translation=args.skip_title_translation,
         render_mode=args.render_mode,

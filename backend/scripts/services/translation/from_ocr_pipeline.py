@@ -34,6 +34,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--end-page", type=int, default=-1)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--workers", type=int, default=100)
+    parser.add_argument("--target-language", type=str, default="zh-CN")
+    parser.add_argument("--rate-limit-qps", type=int, default=0)
+    parser.add_argument("--rate-limit-rpm", type=int, default=0)
     parser.add_argument("--mode", type=str, default="sci", choices=["fast", "precise", "sci"])
     parser.add_argument("--skip-title-translation", action="store_true")
     parser.add_argument("--classify-batch-size", type=int, default=12)
@@ -99,6 +102,9 @@ def main() -> None:
         model=args.model,
         base_url=args.base_url,
         mode=args.mode,
+        target_language=args.target_language,
+        rate_limit_qps=args.rate_limit_qps,
+        rate_limit_rpm=args.rate_limit_rpm,
         classify_batch_size=args.classify_batch_size,
         skip_title_translation=args.skip_title_translation,
         render_mode=args.render_mode,

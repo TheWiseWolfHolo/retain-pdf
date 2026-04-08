@@ -7,6 +7,10 @@ set -eu
 : "${FRONT_MODEL_API_KEY:=}"
 : "${FRONT_MODEL:=deepseek-chat}"
 : "${FRONT_BASE_URL:=https://api.deepseek.com/v1}"
+: "${FRONT_TARGET_LANGUAGE:=zh-CN}"
+: "${FRONT_WORKERS:=100}"
+: "${FRONT_RATE_LIMIT_QPS:=0}"
+: "${FRONT_RATE_LIMIT_RPM:=0}"
 
 if [ -n "$FRONT_API_BASE" ]; then
   API_BASE_VALUE="\"$FRONT_API_BASE\""
@@ -22,5 +26,9 @@ window.__FRONT_RUNTIME_CONFIG__ = {
   modelApiKey: "${FRONT_MODEL_API_KEY}",
   model: "${FRONT_MODEL}",
   baseUrl: "${FRONT_BASE_URL}",
+  targetLanguage: "${FRONT_TARGET_LANGUAGE}",
+  workers: "${FRONT_WORKERS}",
+  rateLimitQps: "${FRONT_RATE_LIMIT_QPS}",
+  rateLimitRpm: "${FRONT_RATE_LIMIT_RPM}",
 };
 EOF

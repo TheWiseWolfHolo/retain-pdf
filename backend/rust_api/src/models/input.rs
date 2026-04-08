@@ -120,6 +120,12 @@ pub struct TranslationInput {
     pub batch_size: i64,
     #[serde(default)]
     pub workers: i64,
+    #[serde(default = "default_target_language")]
+    pub target_language: String,
+    #[serde(default)]
+    pub rate_limit_qps: i64,
+    #[serde(default)]
+    pub rate_limit_rpm: i64,
 }
 
 impl Default for TranslationInput {
@@ -137,6 +143,9 @@ impl Default for TranslationInput {
             end_page: default_end_page(),
             batch_size: default_batch_size(),
             workers: 0,
+            target_language: default_target_language(),
+            rate_limit_qps: 0,
+            rate_limit_rpm: 0,
         }
     }
 }
@@ -325,6 +334,9 @@ mod tests {
         input.translation.model = "deepseek-chat".to_string();
         input.translation.base_url = "https://api.deepseek.com/v1".to_string();
         input.translation.api_key = "sk-test".to_string();
+        input.translation.target_language = "ja".to_string();
+        input.translation.rate_limit_qps = 2;
+        input.translation.rate_limit_rpm = 90;
         input.ocr.mineru_token = "mineru-token".to_string();
 
         let spec = ResolvedJobSpec::from_input(input);
@@ -332,5 +344,8 @@ mod tests {
         assert!(!spec.job_id.trim().is_empty());
         assert_eq!(spec.source.upload_id, "upload-1");
         assert_eq!(spec.resolved_workers(), 100);
+        assert_eq!(spec.translation.target_language, "ja");
+        assert_eq!(spec.translation.rate_limit_qps, 2);
+        assert_eq!(spec.translation.rate_limit_rpm, 90);
     }
 }

@@ -60,12 +60,14 @@ def cache_key_for_item(
     base_url: str,
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> str:
     payload = {
         "model": model.strip(),
         "base_url": normalize_base_url(base_url),
         "domain_guidance": (domain_guidance or "").strip(),
         "mode": mode.strip() or "fast",
+        "target_language": (target_language or "zh-CN").strip() or "zh-CN",
         "prompt_hash": _prompt_hash(mode=mode),
         "strategy_signature": _strategy_signature(item),
         "source_text": _unit_source_text(item),
@@ -85,6 +87,7 @@ def load_cached_translation(
     base_url: str,
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, str]:
     cache_key = cache_key_for_item(
         item,
@@ -92,6 +95,7 @@ def load_cached_translation(
         base_url=base_url,
         domain_guidance=domain_guidance,
         mode=mode,
+        target_language=target_language,
     )
     path = _cache_path(cache_key)
     if not path.exists():
@@ -127,6 +131,7 @@ def store_cached_translation(
     base_url: str,
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> None:
     decision = str(translation_result.get("decision", "translate") or "translate").strip() or "translate"
     translated_text = str(translation_result.get("translated_text", "") or "").strip()
@@ -139,6 +144,7 @@ def store_cached_translation(
         base_url=base_url,
         domain_guidance=domain_guidance,
         mode=mode,
+        target_language=target_language,
     )
     path = _cache_path(cache_key)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -160,6 +166,7 @@ def split_cached_batch(
     base_url: str,
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> tuple[dict[str, dict[str, str]], list[dict]]:
     cached: dict[str, dict[str, str]] = {}
     missing: list[dict] = []
@@ -170,6 +177,7 @@ def split_cached_batch(
             base_url=base_url,
             domain_guidance=domain_guidance,
             mode=mode,
+            target_language=target_language,
         )
         if cached_result:
             cached[item["item_id"]] = cached_result
@@ -186,6 +194,7 @@ def store_cached_batch(
     base_url: str,
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> None:
     for item in batch:
         item_id = item.get("item_id", "")
@@ -199,4 +208,5 @@ def store_cached_batch(
             base_url=base_url,
             domain_guidance=domain_guidance,
             mode=mode,
+            target_language=target_language,
         )

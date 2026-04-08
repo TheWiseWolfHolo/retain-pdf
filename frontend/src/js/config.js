@@ -3,6 +3,10 @@ import {
   BROWSER_CONFIG_STORAGE_KEY,
   DEFAULT_BASE_URL,
   DEFAULT_MODEL,
+  DEFAULT_RATE_LIMIT_QPS,
+  DEFAULT_RATE_LIMIT_RPM,
+  DEFAULT_TARGET_LANGUAGE,
+  DEFAULT_WORKERS,
 } from "./constants.js";
 import { normalizeBrowserStoredConfig } from "./model-catalog.js";
 
@@ -59,6 +63,27 @@ export function defaultModelBaseUrl() {
     : DEFAULT_BASE_URL;
 }
 
+export function defaultTargetLanguage() {
+  return typeof runtimeConfig.targetLanguage === "string" && runtimeConfig.targetLanguage.trim()
+    ? runtimeConfig.targetLanguage.trim()
+    : DEFAULT_TARGET_LANGUAGE;
+}
+
+export function defaultWorkers() {
+  const parsed = Number.parseInt(`${runtimeConfig.workers ?? ""}`.trim(), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_WORKERS;
+}
+
+export function defaultRateLimitQps() {
+  const parsed = Number.parseInt(`${runtimeConfig.rateLimitQps ?? ""}`.trim(), 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_RATE_LIMIT_QPS;
+}
+
+export function defaultRateLimitRpm() {
+  const parsed = Number.parseInt(`${runtimeConfig.rateLimitRpm ?? ""}`.trim(), 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_RATE_LIMIT_RPM;
+}
+
 export function isDesktopMode() {
   return !!desktopBridge;
 }
@@ -75,6 +100,8 @@ export function loadBrowserStoredConfig() {
     return normalizeBrowserStoredConfig({}, {
       defaultBaseUrl: defaultModelBaseUrl(),
       defaultModel: defaultModelName(),
+      defaultTargetLanguage: defaultTargetLanguage(),
+      defaultWorkers: defaultWorkers(),
     });
   }
   try {
@@ -83,17 +110,23 @@ export function loadBrowserStoredConfig() {
       return normalizeBrowserStoredConfig({}, {
         defaultBaseUrl: defaultModelBaseUrl(),
         defaultModel: defaultModelName(),
+        defaultTargetLanguage: defaultTargetLanguage(),
+        defaultWorkers: defaultWorkers(),
       });
     }
     const parsed = JSON.parse(raw);
     return normalizeBrowserStoredConfig(typeof parsed === "object" && parsed ? parsed : {}, {
       defaultBaseUrl: defaultModelBaseUrl(),
       defaultModel: defaultModelName(),
+      defaultTargetLanguage: defaultTargetLanguage(),
+      defaultWorkers: defaultWorkers(),
     });
   } catch (_err) {
     return normalizeBrowserStoredConfig({}, {
       defaultBaseUrl: defaultModelBaseUrl(),
       defaultModel: defaultModelName(),
+      defaultTargetLanguage: defaultTargetLanguage(),
+      defaultWorkers: defaultWorkers(),
     });
   }
 }
@@ -107,6 +140,10 @@ export function saveBrowserStoredConfig() {
     modelApiKey: $("api_key")?.value || "",
     modelBaseUrl: $("model_base_url")?.value || defaultModelBaseUrl(),
     model: $("model_name")?.value || defaultModelName(),
+    targetLanguage: $("target_language")?.value || defaultTargetLanguage(),
+    workers: $("translation_workers")?.value || defaultWorkers(),
+    rateLimitQps: $("rate_limit_qps")?.value || defaultRateLimitQps(),
+    rateLimitRpm: $("rate_limit_rpm")?.value || defaultRateLimitRpm(),
   };
   try {
     window.localStorage.setItem(BROWSER_CONFIG_STORAGE_KEY, JSON.stringify(payload));
@@ -147,6 +184,49 @@ export function applyModelConfigInputs(modelBaseUrl, modelName) {
   }
   if ($("browser-model-id")) {
     $("browser-model-id").value = resolvedModel;
+  }
+}
+
+export function applyTranslationPreferenceInputs(
+  targetLanguage,
+  workers,
+  rateLimitQps,
+  rateLimitRpm,
+) {
+  const resolvedTargetLanguage = targetLanguage || defaultTargetLanguage();
+  const resolvedWorkers = Number.isFinite(Number(workers)) && Number(workers) > 0
+    ? Math.trunc(Number(workers))
+    : defaultWorkers();
+  const resolvedRateLimitQps = Number.isFinite(Number(rateLimitQps)) && Number(rateLimitQps) >= 0
+    ? Math.trunc(Number(rateLimitQps))
+    : defaultRateLimitQps();
+  const resolvedRateLimitRpm = Number.isFinite(Number(rateLimitRpm)) && Number(rateLimitRpm) >= 0
+    ? Math.trunc(Number(rateLimitRpm))
+    : defaultRateLimitRpm();
+
+  if ($("target_language")) {
+    $("target_language").value = resolvedTargetLanguage;
+  }
+  if ($("translation_workers")) {
+    $("translation_workers").value = String(resolvedWorkers);
+  }
+  if ($("rate_limit_qps")) {
+    $("rate_limit_qps").value = String(resolvedRateLimitQps);
+  }
+  if ($("rate_limit_rpm")) {
+    $("rate_limit_rpm").value = String(resolvedRateLimitRpm);
+  }
+  if ($("browser-target-language")) {
+    $("browser-target-language").value = resolvedTargetLanguage;
+  }
+  if ($("browser-workers")) {
+    $("browser-workers").value = String(resolvedWorkers);
+  }
+  if ($("browser-rate-limit-qps")) {
+    $("browser-rate-limit-qps").value = String(resolvedRateLimitQps);
+  }
+  if ($("browser-rate-limit-rpm")) {
+    $("browser-rate-limit-rpm").value = String(resolvedRateLimitRpm);
   }
 }
 

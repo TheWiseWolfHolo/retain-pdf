@@ -56,6 +56,7 @@ def translate_single_item_stable_placeholder_text(
         base_url=base_url,
         request_label=request_label,
         domain_guidance=merged_guidance,
+        target_language=context.target_language,
         diagnostics=diagnostics,
     )
     restored = restore_placeholder_aliases(result, alias_to_original)
@@ -84,6 +85,7 @@ def translate_single_item_plain_text_with_retries(
                 base_url=base_url,
                 request_label=request_label,
                 domain_guidance=context.merged_guidance,
+                target_language=context.target_language,
                 policy=context.segmentation_policy,
                 diagnostics=diagnostics,
             )
@@ -101,6 +103,7 @@ def translate_single_item_plain_text_with_retries(
                     base_url=base_url,
                     request_label=request_label,
                     domain_guidance=context.merged_guidance,
+                    target_language=context.target_language,
                     policy=context.segmentation_policy,
                     diagnostics=diagnostics,
                 )
@@ -119,6 +122,7 @@ def translate_single_item_plain_text_with_retries(
                 base_url=base_url,
                 request_label=request_label,
                 domain_guidance=context.merged_guidance,
+                target_language=context.target_language,
                 policy=context.segmentation_policy,
                 diagnostics=diagnostics,
             )
@@ -145,6 +149,7 @@ def translate_single_item_plain_text_with_retries(
                 request_label=f"{request_label} req#{attempt}" if request_label else "",
                 domain_guidance=context.merged_guidance,
                 mode=context.mode,
+                target_language=context.target_language,
                 diagnostics=diagnostics,
             )
             if request_label:
@@ -247,6 +252,7 @@ def translate_items_plain_text(
         base_url=base_url,
         domain_guidance=context.merged_guidance,
         mode=context.mode,
+        target_language=context.target_language,
     )
     if request_label and cached_result:
         print(f"{request_label}: plain-text cache hit {len(cached_result)}/{len(batch)}", flush=True)
@@ -293,6 +299,7 @@ def translate_items_plain_text(
                 base_url=base_url,
                 domain_guidance=context.merged_guidance,
                 mode=context.mode,
+                target_language=context.target_language,
             )
         merged.update(result)
     return merged

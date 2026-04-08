@@ -72,6 +72,9 @@ enum TranslationArg {
     EndPage,
     BatchSize,
     Workers,
+    TargetLanguage,
+    RateLimitQps,
+    RateLimitRpm,
     Mode,
     SkipTitleTranslation,
     ClassifyBatchSize,
@@ -128,6 +131,9 @@ const TRANSLATION_ARGS: &[(&str, TranslationArg)] = &[
     ("--end-page", TranslationArg::EndPage),
     ("--batch-size", TranslationArg::BatchSize),
     ("--workers", TranslationArg::Workers),
+    ("--target-language", TranslationArg::TargetLanguage),
+    ("--rate-limit-qps", TranslationArg::RateLimitQps),
+    ("--rate-limit-rpm", TranslationArg::RateLimitRpm),
     ("--mode", TranslationArg::Mode),
     (
         "--skip-title-translation",
@@ -202,6 +208,9 @@ fn push_translation_args(cmd: &mut CommandBuilder, request: &ResolvedJobSpec) {
             TranslationArg::EndPage => cmd.arg(name, request.translation.end_page),
             TranslationArg::BatchSize => cmd.arg(name, request.translation.batch_size),
             TranslationArg::Workers => cmd.arg(name, request.resolved_workers()),
+            TranslationArg::TargetLanguage => cmd.arg(name, &request.translation.target_language),
+            TranslationArg::RateLimitQps => cmd.arg(name, request.translation.rate_limit_qps),
+            TranslationArg::RateLimitRpm => cmd.arg(name, request.translation.rate_limit_rpm),
             TranslationArg::Mode => cmd.arg(name, &request.translation.mode),
             TranslationArg::SkipTitleTranslation => {
                 cmd.flag(name, request.translation.skip_title_translation)

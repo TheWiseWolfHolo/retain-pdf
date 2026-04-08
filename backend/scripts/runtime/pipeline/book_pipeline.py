@@ -10,6 +10,8 @@ from runtime.pipeline.render_stage import build_book_from_translations
 from runtime.pipeline.render_stage import build_book_pipeline
 from runtime.pipeline.render_stage import run_render_stage
 from runtime.pipeline.translation_stage import translate_book_pipeline
+from services.translation.llm.request_limits import configure_request_limits
+from services.translation.llm.target_language import normalize_target_language
 
 
 def run_book_pipeline(
@@ -26,6 +28,9 @@ def run_book_pipeline(
     model: str,
     base_url: str,
     mode: str,
+    target_language: str,
+    rate_limit_qps: int,
+    rate_limit_rpm: int,
     classify_batch_size: int,
     skip_title_translation: bool,
     render_mode: str,
@@ -36,6 +41,19 @@ def run_book_pipeline(
     pdf_compress_dpi: int = runtime.DEFAULT_PDF_COMPRESS_DPI,
 ) -> dict:
     total_started = time.perf_counter()
+    resolved_target_language = normalize_target_language(target_language)
+    rate_limit_config = configure_request_limits(
+        rate_limit_qps=rate_limit_qps,
+        rate_limit_rpm=rate_limit_rpm,
+    )
+    if rate_limit_config["min_interval_seconds"] > 0:
+        print(
+            "llm rate limit:"
+            f" qps={rate_limit_config['rate_limit_qps']}"
+            f" rpm={rate_limit_config['rate_limit_rpm']}"
+            f" min_interval={rate_limit_config['min_interval_seconds']:.2f}s",
+            flush=True,
+        )
     translation_summary = translate_book_pipeline(
         source_json_path=source_json_path,
         output_dir=output_dir,
@@ -45,6 +63,7 @@ def run_book_pipeline(
         batch_size=batch_size,
         workers=max(1, workers),
         mode=mode,
+        target_language=resolved_target_language,
         classify_batch_size=max(1, classify_batch_size),
         skip_title_translation=skip_title_translation,
         model=model,
@@ -86,6 +105,9 @@ def run_book_pipeline(
         "translated_items_total": translated_items_total,
         "rule_profile_name": translation_summary.get("rule_profile_name", ""),
         "custom_rules_text": translation_summary.get("custom_rules_text", ""),
+        "target_language": resolved_target_language,
+        "rate_limit_qps": int(rate_limit_config["rate_limit_qps"]),
+        "rate_limit_rpm": int(rate_limit_config["rate_limit_rpm"]),
         "translate_elapsed": translate_elapsed,
         "save_elapsed": save_elapsed,
         "total_elapsed": total_elapsed,

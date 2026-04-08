@@ -7,6 +7,8 @@ import time
 from services.translation.diagnostics import TranslationDiagnosticsCollector
 from services.translation.llm.control_context import SegmentationPolicy
 from services.translation.llm.deepseek_client import request_chat_content
+from services.translation.llm.target_language import build_target_language_guidance
+from services.translation.llm.target_language import normalize_target_language
 from services.translation.llm.placeholder_guard import canonicalize_batch_result
 from services.translation.llm.placeholder_guard import has_formula_placeholders
 from services.translation.llm.placeholder_guard import normalize_inline_whitespace
@@ -90,15 +92,15 @@ def build_formula_segment_plan(source_text: str) -> tuple[list[tuple[str, str]],
     return skeleton, segments
 
 
-def segment_translation_system_prompt(domain_guidance: str = "") -> str:
+def segment_translation_system_prompt(domain_guidance: str = "", target_language: str = "zh-CN") -> str:
     prompt = (
         "You are translating fixed text segments extracted from one scientific OCR item.\n"
         "Each segment is a natural-language span that sits between protected formulas or literal tokens.\n"
         "Those protected formulas/literals are omitted from the request and will be reinserted automatically by software after translation.\n"
         "You are NOT translating the whole item as one sentence. You are translating each provided segment independently while respecting the original segment order.\n"
-        "Use concise publication-style Simplified Chinese suitable for scientific writing.\n"
+        "Use concise publication-style wording suitable for scientific writing.\n"
         "Keep abbreviations, symbols, and standard model names in their normal technical form.\n"
-        "If a segment is only a connector or incomplete phrase, keep it equally short and incomplete in Chinese.\n"
+        "If a segment is only a connector or incomplete phrase, keep it equally short and incomplete in the requested target language.\n"
         "Do not repair truncated grammar by pulling content from neighboring segments.\n"
         "Do not output any formula placeholders, formula markers, reconstructed full-item text, commentary, JSON, or code fences.\n"
         "Return exactly one tagged block for every requested segment_id and nothing else.\n"
@@ -112,6 +114,7 @@ def segment_translation_system_prompt(domain_guidance: str = "") -> str:
         "- Do not copy hidden formulas back into the output in any form.\n"
         "- Short connectors such as 'and', 'for', 'with', or 'by considering the possible' must stay terse rather than expanded into full sentences."
     )
+    prompt = f"{prompt}\n{build_target_language_guidance(target_language)}"
     if domain_guidance.strip():
         prompt = f"{prompt}\nDocument-specific translation guidance:\n{domain_guidance.strip()}"
     return prompt
@@ -123,6 +126,7 @@ def build_formula_segment_messages(
     segments: list[dict[str, str]],
     *,
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
     context_before: str | None = None,
     context_after: str | None = None,
 ) -> list[dict[str, str]]:
@@ -132,6 +136,7 @@ def build_formula_segment_messages(
     ]
     user_payload: dict[str, object] = {
         "item_id": item["item_id"],
+        "target_language": normalize_target_language(target_language),
         "segment_count": len(serialized_segments),
         "segment_structure": segment_structure_outline(skeleton),
         "segments": serialized_segments,
@@ -149,7 +154,13 @@ def build_formula_segment_messages(
     if item.get("continuation_group"):
         user_payload["continuation_group"] = item["continuation_group"]
     return [
-        {"role": "system", "content": segment_translation_system_prompt(domain_guidance=domain_guidance)},
+        {
+            "role": "system",
+            "content": segment_translation_system_prompt(
+                domain_guidance=domain_guidance,
+                target_language=target_language,
+            ),
+        },
         {"role": "user", "content": json.dumps(user_payload, ensure_ascii=False)},
     ]
 
@@ -298,6 +309,7 @@ def translate_single_item_formula_segment_text_with_retries(
     base_url: str = "https://api.deepseek.com/v1",
     request_label: str = "",
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
     policy: SegmentationPolicy | None = None,
     diagnostics: TranslationDiagnosticsCollector | None = None,
 ) -> dict[str, dict[str, str]]:
@@ -319,7 +331,13 @@ def translate_single_item_formula_segment_text_with_retries(
             if request_label:
                 print(f"{request_label}: segmented-formula attempt {attempt}/4 segments={len(segments)}", flush=True)
             content = request_chat_content(
-                build_formula_segment_messages(item, skeleton, segments, domain_guidance=domain_guidance),
+                build_formula_segment_messages(
+                    item,
+                    skeleton,
+                    segments,
+                    domain_guidance=domain_guidance,
+                    target_language=target_language,
+                ),
                 api_key=api_key,
                 model=model,
                 base_url=base_url,
@@ -363,6 +381,7 @@ def translate_formula_segment_window_with_retries(
     base_url: str = "https://api.deepseek.com/v1",
     request_label: str = "",
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
 ) -> dict[str, str]:
     window_index = int(window["window_index"])
     window_segments = list(window["segments"])
@@ -388,6 +407,7 @@ def translate_formula_segment_window_with_retries(
                     list(window["skeleton"]),
                     window_segments,
                     domain_guidance=domain_guidance,
+                    target_language=target_language,
                     context_before=context_before,
                     context_after=context_after,
                 ),
@@ -428,6 +448,7 @@ def translate_single_item_formula_segment_windows_with_retries(
     base_url: str = "https://api.deepseek.com/v1",
     request_label: str = "",
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
     policy: SegmentationPolicy | None = None,
     diagnostics: TranslationDiagnosticsCollector | None = None,
 ) -> dict[str, dict[str, str]]:
@@ -446,6 +467,7 @@ def translate_single_item_formula_segment_windows_with_retries(
             base_url=base_url,
             request_label=request_label,
             domain_guidance=domain_guidance,
+            target_language=target_language,
             policy=policy,
             diagnostics=diagnostics,
         )
@@ -466,6 +488,7 @@ def translate_single_item_formula_segment_windows_with_retries(
                     base_url=base_url,
                     request_label=request_label,
                     domain_guidance=domain_guidance,
+                    target_language=target_language,
                 )
             )
             successful_windows += 1

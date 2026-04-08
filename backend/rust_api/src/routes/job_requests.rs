@@ -145,6 +145,9 @@ fn apply_multipart_request_field(
         "end_page" => request.translation.end_page = parse_i64_like(name, value)?,
         "batch_size" => request.translation.batch_size = parse_i64_like(name, value)?,
         "workers" => request.translation.workers = parse_i64_like(name, value)?,
+        "target_language" => request.translation.target_language = value.to_string(),
+        "rate_limit_qps" => request.translation.rate_limit_qps = parse_i64_like(name, value)?,
+        "rate_limit_rpm" => request.translation.rate_limit_rpm = parse_i64_like(name, value)?,
         "translated_pdf_name" => request.render.translated_pdf_name = value.to_string(),
         "mineru_token" => request.ocr.mineru_token = value.to_string(),
         "model_version" => request.ocr.model_version = value.to_string(),
@@ -221,6 +224,19 @@ mod tests {
         .expect("base_url");
         apply_multipart_request_field(&mut request, &mut developer_mode, "api_key", "sk-test")
             .expect("api_key");
+        apply_multipart_request_field(
+            &mut request,
+            &mut developer_mode,
+            "target_language",
+            "ja",
+        )
+        .expect("target_language");
+        apply_multipart_request_field(&mut request, &mut developer_mode, "rate_limit_qps", "2")
+            .expect("rate_limit_qps");
+        apply_multipart_request_field(&mut request, &mut developer_mode, "rate_limit_rpm", "90")
+            .expect("rate_limit_rpm");
+        apply_multipart_request_field(&mut request, &mut developer_mode, "workers", "6")
+            .expect("workers");
         apply_multipart_request_field(&mut request, &mut developer_mode, "render_mode", "auto")
             .expect("render_mode");
         apply_multipart_request_field(&mut request, &mut developer_mode, "timeout_seconds", "600")
@@ -231,6 +247,10 @@ mod tests {
         assert_eq!(request.ocr.mineru_token, "mineru");
         assert_eq!(request.translation.base_url, "https://api.deepseek.com/v1");
         assert_eq!(request.translation.api_key, "sk-test");
+        assert_eq!(request.translation.target_language, "ja");
+        assert_eq!(request.translation.rate_limit_qps, 2);
+        assert_eq!(request.translation.rate_limit_rpm, 90);
+        assert_eq!(request.translation.workers, 6);
         assert_eq!(request.render.render_mode, "auto");
         assert_eq!(request.runtime.timeout_seconds, 600);
     }

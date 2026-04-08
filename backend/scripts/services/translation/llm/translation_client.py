@@ -53,6 +53,7 @@ def translate_single_item_plain_text(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
     diagnostics: TranslationDiagnosticsCollector | None = None,
 ) -> dict[str, dict[str, str]]:
     content = request_chat_content(
@@ -61,6 +62,7 @@ def translate_single_item_plain_text(
             domain_guidance=domain_guidance,
             mode=mode,
             structured_decision=False,
+            target_language=target_language,
         ),
         api_key=api_key,
         model=model,
@@ -85,10 +87,16 @@ def translate_single_item_tagged_text(
     base_url: str = "https://api.deepseek.com/v1",
     request_label: str = "",
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
     diagnostics: TranslationDiagnosticsCollector | None = None,
 ) -> dict[str, dict[str, str]]:
     content = request_chat_content(
-        build_messages([item], domain_guidance=domain_guidance, mode="fast"),
+        build_messages(
+            [item],
+            domain_guidance=domain_guidance,
+            mode="fast",
+            target_language=target_language,
+        ),
         api_key=api_key,
         model=model,
         base_url=base_url,
@@ -112,6 +120,7 @@ def translate_single_item_with_decision(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
     diagnostics: TranslationDiagnosticsCollector | None = None,
 ) -> dict[str, dict[str, str]]:
     content = request_chat_content(
@@ -120,6 +129,7 @@ def translate_single_item_with_decision(
             domain_guidance=domain_guidance,
             mode=mode,
             structured_decision=True,
+            target_language=target_language,
         ),
         api_key=api_key,
         model=model,
@@ -144,10 +154,16 @@ def translate_batch_once(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
     diagnostics: TranslationDiagnosticsCollector | None = None,
 ) -> dict[str, dict[str, str]]:
     content = request_chat_content(
-        build_messages(batch, domain_guidance=domain_guidance, mode=mode),
+        build_messages(
+            batch,
+            domain_guidance=domain_guidance,
+            mode=mode,
+            target_language=target_language,
+        ),
         api_key=api_key,
         model=model,
         base_url=base_url,

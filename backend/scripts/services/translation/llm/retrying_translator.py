@@ -32,9 +32,10 @@ from services.translation.llm.translation_client import translate_single_item_ta
 from services.translation.llm.translation_client import translate_single_item_with_decision as _translate_single_item_with_decision_impl
 
 
-def _build_context(*, mode: str, domain_guidance: str, request_label: str):
+def _build_context(*, mode: str, target_language: str, domain_guidance: str, request_label: str):
     return build_translation_control_context(
         mode=mode,
+        target_language=target_language,
         domain_guidance=domain_guidance,
         request_label=request_label,
     )
@@ -55,6 +56,7 @@ def _translate_single_item_formula_segment_text_with_retries(
     base_url: str = "https://api.deepseek.com/v1",
     request_label: str = "",
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
     return _translate_single_item_formula_segment_text_with_retries_impl(
         item,
@@ -63,6 +65,7 @@ def _translate_single_item_formula_segment_text_with_retries(
         base_url=base_url,
         request_label=request_label,
         domain_guidance=domain_guidance,
+        target_language=target_language,
     )
 
 
@@ -73,6 +76,7 @@ def _translate_single_item_formula_segment_windows_with_retries(
     base_url: str = "https://api.deepseek.com/v1",
     request_label: str = "",
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
     return _translate_single_item_formula_segment_windows_with_retries_impl(
         item,
@@ -81,6 +85,7 @@ def _translate_single_item_formula_segment_windows_with_retries(
         base_url=base_url,
         request_label=request_label,
         domain_guidance=domain_guidance,
+        target_language=target_language,
     )
 
 
@@ -92,6 +97,7 @@ def _translate_single_item_plain_text(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
     diagnostics = TranslationDiagnosticsCollector()
     return _translate_single_item_plain_text_impl(
@@ -102,6 +108,7 @@ def _translate_single_item_plain_text(
         request_label=request_label,
         domain_guidance=domain_guidance,
         mode=mode,
+        target_language=target_language,
         diagnostics=diagnostics,
     )
 
@@ -113,6 +120,7 @@ def _translate_single_item_tagged_text(
     base_url: str = "https://api.deepseek.com/v1",
     request_label: str = "",
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
     diagnostics = TranslationDiagnosticsCollector()
     return _translate_single_item_tagged_text_impl(
@@ -122,6 +130,7 @@ def _translate_single_item_tagged_text(
         base_url=base_url,
         request_label=request_label,
         domain_guidance=domain_guidance,
+        target_language=target_language,
         diagnostics=diagnostics,
     )
 
@@ -133,8 +142,14 @@ def _translate_single_item_stable_placeholder_text(
     base_url: str = "https://api.deepseek.com/v1",
     request_label: str = "",
     domain_guidance: str = "",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
-    context = _build_context(mode="fast", domain_guidance=domain_guidance, request_label=request_label)
+    context = _build_context(
+        mode="fast",
+        target_language=target_language,
+        domain_guidance=domain_guidance,
+        request_label=request_label,
+    )
     diagnostics = TranslationDiagnosticsCollector()
     return _translate_single_item_stable_placeholder_text_impl(
         item,
@@ -155,8 +170,14 @@ def _translate_single_item_plain_text_with_retries(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
-    context = _build_context(mode=mode, domain_guidance=domain_guidance, request_label=request_label)
+    context = _build_context(
+        mode=mode,
+        target_language=target_language,
+        domain_guidance=domain_guidance,
+        request_label=request_label,
+    )
     diagnostics = TranslationDiagnosticsCollector()
     return _translate_single_item_plain_text_with_retries_impl(
         item,
@@ -177,8 +198,14 @@ def _translate_items_plain_text(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
-    context = _build_context(mode=mode, domain_guidance=domain_guidance, request_label=request_label)
+    context = _build_context(
+        mode=mode,
+        target_language=target_language,
+        domain_guidance=domain_guidance,
+        request_label=request_label,
+    )
     diagnostics = TranslationDiagnosticsCollector()
     return _translate_items_plain_text_impl(
         batch,
@@ -199,6 +226,7 @@ def _translate_single_item_with_decision(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
     diagnostics = TranslationDiagnosticsCollector()
     return _translate_single_item_with_decision_impl(
@@ -209,6 +237,7 @@ def _translate_single_item_with_decision(
         request_label=request_label,
         domain_guidance=domain_guidance,
         mode=mode,
+        target_language=target_language,
         diagnostics=diagnostics,
     )
 
@@ -221,6 +250,7 @@ def _translate_batch_once(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
     diagnostics = TranslationDiagnosticsCollector()
     return _translate_batch_once_impl(
@@ -231,6 +261,7 @@ def _translate_batch_once(
         request_label=request_label,
         domain_guidance=domain_guidance,
         mode=mode,
+        target_language=target_language,
         diagnostics=diagnostics,
     )
 
@@ -243,6 +274,7 @@ def translate_batch(
     request_label: str = "",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, dict[str, str]]:
     return _translate_items_plain_text(
         batch,
@@ -252,6 +284,7 @@ def translate_batch(
         request_label=request_label,
         domain_guidance=domain_guidance,
         mode=mode,
+        target_language=target_language,
     )
 
 
@@ -262,6 +295,7 @@ def translate_items_to_text_map(
     base_url: str = "https://api.deepseek.com/v1",
     domain_guidance: str = "",
     mode: str = "fast",
+    target_language: str = "zh-CN",
 ) -> dict[str, str]:
     translated = translate_batch(
         items,
@@ -270,5 +304,6 @@ def translate_items_to_text_map(
         base_url=base_url,
         domain_guidance=domain_guidance,
         mode=mode,
+        target_language=target_language,
     )
     return {item_id: result.get("translated_text", "") for item_id, result in translated.items()}

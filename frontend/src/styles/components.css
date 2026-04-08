@@ -231,6 +231,51 @@
     align-items: flex-start;
   }
 
+  .credential-advanced-panel {
+    border: 1px solid #ececf1;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+    overflow: hidden;
+  }
+
+  .credential-advanced-panel summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #3a3a3c;
+    user-select: none;
+  }
+
+  .credential-advanced-panel summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .credential-advanced-panel summary::after {
+    content: "＋";
+    float: right;
+    color: #6e6e73;
+    font-size: 14px;
+  }
+
+  .credential-advanced-panel[open] summary::after {
+    content: "－";
+  }
+
+  .credential-advanced-grid {
+    display: grid;
+    gap: 10px;
+    padding: 0 14px 12px;
+  }
+
+  .credential-advanced-note {
+    padding: 0 14px 14px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #6e6e73;
+  }
+
   .credential-card-actions button.secondary {
     min-height: 34px;
     padding-inline: 12px;

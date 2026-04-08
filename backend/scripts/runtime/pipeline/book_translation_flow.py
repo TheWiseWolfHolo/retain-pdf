@@ -27,6 +27,7 @@ def translate_book_with_global_continuations(
     model: str,
     base_url: str,
     mode: str,
+    target_language: str,
     classify_batch_size: int,
     skip_title_translation: bool,
     sci_cutoff_page_idx: int | None,
@@ -93,6 +94,7 @@ def translate_book_with_global_continuations(
         base_url=base_url,
         domain_guidance=domain_guidance,
         mode=mode,
+        target_language=target_language,
     )
     print(f"book: translation batches in {time.perf_counter() - translate_started:.2f}s", flush=True)
 
@@ -103,6 +105,7 @@ def translate_book_with_global_continuations(
         model=model,
         base_url=base_url,
         workers=workers,
+        target_language=target_language,
     )
     reconstructed_items = int(summary["garbled_reconstructed"])
     garbled_candidates = int(summary["garbled_candidates"])

@@ -2,11 +2,16 @@ import { $ } from "./dom.js";
 import {
   apiBase,
   applyModelConfigInputs,
+  applyTranslationPreferenceInputs,
   applyKeyInputs,
   defaultMineruToken,
   defaultModelApiKey,
   defaultModelBaseUrl,
   defaultModelName,
+  defaultRateLimitQps,
+  defaultRateLimitRpm,
+  defaultTargetLanguage,
+  defaultWorkers,
   desktopInvoke,
   isDesktopMode,
   loadBrowserStoredConfig,
@@ -21,8 +26,11 @@ import {
   DEFAULT_LANGUAGE,
   DEFAULT_MODE,
   DEFAULT_MODEL_VERSION,
+  DEFAULT_RATE_LIMIT_QPS,
+  DEFAULT_RATE_LIMIT_RPM,
   DEFAULT_RULE_PROFILE,
   DEFAULT_RENDER_MODE,
+  DEFAULT_TARGET_LANGUAGE,
   DEFAULT_TIMEOUT_SECONDS,
   DEFAULT_WORKERS,
   FRONT_MAX_BYTES,
@@ -171,6 +179,25 @@ function effectiveModelBaseUrl() {
 
 function effectiveModelName() {
   return ($("model_name")?.value || defaultModelName()).trim();
+}
+
+function effectiveTargetLanguage() {
+  return ($("target_language")?.value || defaultTargetLanguage()).trim();
+}
+
+function effectiveWorkers() {
+  const parsed = Number.parseInt(($("translation_workers")?.value || `${defaultWorkers()}`).trim(), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_WORKERS;
+}
+
+function effectiveRateLimitQps() {
+  const parsed = Number.parseInt(($("rate_limit_qps")?.value || `${defaultRateLimitQps()}`).trim(), 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_RATE_LIMIT_QPS;
+}
+
+function effectiveRateLimitRpm() {
+  const parsed = Number.parseInt(($("rate_limit_rpm")?.value || `${defaultRateLimitRpm()}`).trim(), 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_RATE_LIMIT_RPM;
 }
 
 function setModelCatalogOptions(items = [], preferredModel = "") {
@@ -364,7 +391,10 @@ function collectRunPayload() {
       model: effectiveModelName(),
       base_url: effectiveModelBaseUrl(),
       api_key: $("api_key").value || defaultModelApiKey(),
-      workers: DEFAULT_WORKERS,
+      workers: effectiveWorkers(),
+      target_language: effectiveTargetLanguage(),
+      rate_limit_qps: effectiveRateLimitQps(),
+      rate_limit_rpm: effectiveRateLimitRpm(),
       batch_size: DEFAULT_BATCH_SIZE,
       classify_batch_size: DEFAULT_CLASSIFY_BATCH_SIZE,
       rule_profile_name: DEFAULT_RULE_PROFILE,
@@ -899,6 +929,10 @@ function browserCredentialElements() {
     apiKeyInput: $("browser-api-key"),
     modelInput: $("browser-model-id"),
     modelSelect: $("browser-model-select"),
+    targetLanguageInput: $("browser-target-language"),
+    workersInput: $("browser-workers"),
+    rateLimitQpsInput: $("browser-rate-limit-qps"),
+    rateLimitRpmInput: $("browser-rate-limit-rpm"),
     trigger: $("credentials-btn"),
   };
 }
@@ -909,6 +943,10 @@ function syncBrowserDialogFromHiddenInputs() {
     modelBaseUrlInput,
     apiKeyInput,
     modelInput,
+    targetLanguageInput,
+    workersInput,
+    rateLimitQpsInput,
+    rateLimitRpmInput,
   } = browserCredentialElements();
   if (mineruInput) {
     mineruInput.value = $("mineru_token").value || "";
@@ -922,6 +960,18 @@ function syncBrowserDialogFromHiddenInputs() {
   if (modelInput) {
     modelInput.value = effectiveModelName();
   }
+  if (targetLanguageInput) {
+    targetLanguageInput.value = effectiveTargetLanguage();
+  }
+  if (workersInput) {
+    workersInput.value = String(effectiveWorkers());
+  }
+  if (rateLimitQpsInput) {
+    rateLimitQpsInput.value = String(effectiveRateLimitQps());
+  }
+  if (rateLimitRpmInput) {
+    rateLimitRpmInput.value = String(effectiveRateLimitRpm());
+  }
   setModelCatalogOptions(state.modelCatalogItems, effectiveModelName());
   setMineruValidationMessage("", "");
   setModelValidationMessage("", "");
@@ -933,6 +983,10 @@ function persistBrowserCredentialsFromDialog() {
     modelBaseUrlInput,
     apiKeyInput,
     modelInput,
+    targetLanguageInput,
+    workersInput,
+    rateLimitQpsInput,
+    rateLimitRpmInput,
   } = browserCredentialElements();
   applyKeyInputs(
     mineruInput?.value?.trim() || "",
@@ -941,6 +995,12 @@ function persistBrowserCredentialsFromDialog() {
   applyModelConfigInputs(
     modelBaseUrlInput?.value?.trim() || defaultModelBaseUrl(),
     modelInput?.value?.trim() || defaultModelName(),
+  );
+  applyTranslationPreferenceInputs(
+    targetLanguageInput?.value?.trim() || defaultTargetLanguage(),
+    workersInput?.value?.trim() || defaultWorkers(),
+    rateLimitQpsInput?.value?.trim() || defaultRateLimitQps(),
+    rateLimitRpmInput?.value?.trim() || defaultRateLimitRpm(),
   );
   saveBrowserStoredConfig();
 }
@@ -1018,9 +1078,13 @@ async function handleBrowserCredentialSave() {
     modelBaseUrlInput,
     apiKeyInput,
     modelInput,
+    targetLanguageInput,
   } = browserCredentialElements();
   const validation = await runMineruTokenValidation(mineruInput?.value || "", { showResult: true });
   if (!validation.ok) {
+    return;
+  }
+  if (!`${targetLanguageInput?.value || ""}`.trim()) {
     return;
   }
   const modelId = `${modelInput?.value || ""}`.trim();
@@ -1060,6 +1124,12 @@ function initializePage() {
     browserStored.modelBaseUrl || defaultModelBaseUrl(),
     browserStored.model || defaultModelName(),
   );
+  applyTranslationPreferenceInputs(
+    browserStored.targetLanguage || DEFAULT_TARGET_LANGUAGE,
+    browserStored.workers || DEFAULT_WORKERS,
+    browserStored.rateLimitQps || DEFAULT_RATE_LIMIT_QPS,
+    browserStored.rateLimitRpm || DEFAULT_RATE_LIMIT_RPM,
+  );
   [
     "query-dialog",
     "browser-credentials-dialog",
@@ -1088,6 +1158,10 @@ function initializePage() {
   $("api_key").addEventListener("input", saveBrowserStoredConfig);
   $("model_base_url")?.addEventListener("input", saveBrowserStoredConfig);
   $("model_name")?.addEventListener("input", saveBrowserStoredConfig);
+  $("target_language")?.addEventListener("input", saveBrowserStoredConfig);
+  $("translation_workers")?.addEventListener("input", saveBrowserStoredConfig);
+  $("rate_limit_qps")?.addEventListener("input", saveBrowserStoredConfig);
+  $("rate_limit_rpm")?.addEventListener("input", saveBrowserStoredConfig);
   $("job-form").addEventListener("submit", submitForm);
   $("open-query-btn").addEventListener("click", openQueryDialog);
   $("refresh-jobs-btn")?.addEventListener("click", () => loadRecentJobs({ reset: true }));
@@ -1137,6 +1211,9 @@ function initializePage() {
     setModelValidationMessage("", "");
   });
   $("browser-model-id")?.addEventListener("input", () => {
+    setModelValidationMessage("", "");
+  });
+  $("browser-target-language")?.addEventListener("change", () => {
     setModelValidationMessage("", "");
   });
   $("browser-model-select")?.addEventListener("change", (event) => {

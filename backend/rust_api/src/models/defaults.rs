@@ -25,6 +25,9 @@ pub(crate) fn default_end_page() -> i64 {
 pub(crate) fn default_batch_size() -> i64 {
     1
 }
+pub(crate) fn default_target_language() -> String {
+    "zh-CN".to_string()
+}
 pub(crate) fn default_model_version() -> String {
     "vlm".to_string()
 }
