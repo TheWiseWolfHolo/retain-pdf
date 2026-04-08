@@ -9,6 +9,7 @@ set "WEB_IMAGE=retainpdf-web:open-model-config"
 set "APP_PORT=44100"
 set "APP_SIMPLE_PORT=44200"
 set "WEB_PORT=40001"
+set "SUCCESS_HOLD_SECONDS=8"
 set "FRONT_URL=http://127.0.0.1:%WEB_PORT%"
 set "API_URL=http://127.0.0.1:%APP_PORT%"
 
@@ -24,6 +25,8 @@ echo [RetainPDF] Backend health: %API_URL%/health
 start "" "%FRONT_URL%"
 
 echo [RetainPDF] Ready: %FRONT_URL%
+echo [RetainPDF] This window will close in %SUCCESS_HOLD_SECONDS%s...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds %SUCCESS_HOLD_SECONDS%"
 exit /b 0
 
 :fail
