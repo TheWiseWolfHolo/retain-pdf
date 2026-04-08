@@ -5,7 +5,6 @@ import subprocess
 from pathlib import Path
 
 from foundation.config import fonts
-from foundation.config import paths
 from services.rendering.typst.shared import TYPST_BIN
 from services.rendering.typst.shared import TYPST_OVERLAY_DIR
 from services.rendering.typst.source_builder import build_typst_book_background_source
@@ -33,6 +32,15 @@ def _typst_compile_command(typ_path: Path, pdf_path: Path, font_paths: list[Path
         command.extend(["--font-path", str(font_path)])
     command.extend([str(typ_path), str(pdf_path)])
     return command
+
+
+def resolve_typst_project_root(typ_path: Path, source_path: Path) -> Path:
+    resolved_typ_path = typ_path.resolve(strict=False)
+    resolved_source_path = source_path.resolve(strict=False)
+    try:
+        return Path(os.path.commonpath([resolved_typ_path, resolved_source_path]))
+    except ValueError:
+        return resolved_typ_path.parent
 
 
 def compile_typst_overlay_pdf(
@@ -107,7 +115,8 @@ def compile_typst_book_background_pdf(
         build_typst_book_background_source(source_pdf_path, page_specs, work_dir, font_family=font_family),
         encoding="utf-8",
     )
-    command = [TYPST_BIN, "compile", "--root", str(paths.ROOT_DIR)]
+    project_root = resolve_typst_project_root(typ_path, source_pdf_path)
+    command = [TYPST_BIN, "compile", "--root", str(project_root)]
     for font_path in _resolved_font_paths(font_paths):
         command.extend(["--font-path", str(font_path)])
     command.extend([str(typ_path), str(pdf_path)])
