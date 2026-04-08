@@ -187,17 +187,17 @@ function effectiveTargetLanguage() {
 
 function effectiveWorkers() {
   const parsed = Number.parseInt(($("translation_workers")?.value || `${defaultWorkers()}`).trim(), 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_WORKERS;
+  return Number.isFinite(parsed) && (parsed > 0 || parsed === -1) ? parsed : DEFAULT_WORKERS;
 }
 
 function effectiveRateLimitQps() {
   const parsed = Number.parseInt(($("rate_limit_qps")?.value || `${defaultRateLimitQps()}`).trim(), 10);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_RATE_LIMIT_QPS;
+  return Number.isFinite(parsed) && (parsed >= 0 || parsed === -1) ? parsed : DEFAULT_RATE_LIMIT_QPS;
 }
 
 function effectiveRateLimitRpm() {
   const parsed = Number.parseInt(($("rate_limit_rpm")?.value || `${defaultRateLimitRpm()}`).trim(), 10);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_RATE_LIMIT_RPM;
+  return Number.isFinite(parsed) && (parsed >= 0 || parsed === -1) ? parsed : DEFAULT_RATE_LIMIT_RPM;
 }
 
 function setModelCatalogOptions(items = [], preferredModel = "") {

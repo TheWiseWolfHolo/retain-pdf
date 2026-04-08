@@ -9,6 +9,7 @@ from services.translation.orchestration.zones import annotate_payload_layout_zon
 from services.translation.continuation import review_candidate_pairs
 from services.translation.continuation import apply_candidate_pair_joins
 from services.translation.continuation import candidate_continuation_pairs
+from services.translation.parallelism import resolve_executor_workers
 
 
 def annotate_layout_zones_by_page(page_payloads: dict[int, list[dict]]) -> None:
@@ -71,6 +72,7 @@ def review_candidate_continuation_pairs(
 
     batches = chunked(boundary_pairs, max(1, batch_size))
     approved: list[tuple[str, str]] = []
+    resolved_workers = resolve_executor_workers(workers, len(batches), cap=8)
 
     def _run_review(batch_pairs: list[dict], index: int) -> list[tuple[str, str]]:
         labeled_pairs = []
@@ -92,11 +94,11 @@ def review_candidate_continuation_pairs(
             if decision == "join" and pair_id in pair_map
         ]
 
-    if workers <= 1 or len(batches) == 1:
+    if resolved_workers <= 1 or len(batches) == 1:
         for index, batch in enumerate(batches, start=1):
             approved.extend(_run_review(batch, index))
     else:
-        with ThreadPoolExecutor(max_workers=max(1, workers)) as executor:
+        with ThreadPoolExecutor(max_workers=resolved_workers) as executor:
             futures = {
                 executor.submit(_run_review, batch, index): index
                 for index, batch in enumerate(batches, start=1)

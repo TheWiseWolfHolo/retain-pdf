@@ -82,3 +82,25 @@ test("normalizeBrowserStoredConfig trims explicit model config", async () => {
     rateLimitRpm: 90,
   });
 });
+
+test("normalizeBrowserStoredConfig preserves -1 sentinel for unlimited controls", async () => {
+  const { normalizeBrowserStoredConfig } = await import("../src/js/model-catalog.js");
+
+  const result = normalizeBrowserStoredConfig(
+    {
+      workers: "-1",
+      rateLimitQps: "-1",
+      rateLimitRpm: "-1",
+    },
+    {
+      defaultBaseUrl: "https://fallback.example.com/v1",
+      defaultModel: "fallback-model",
+      defaultTargetLanguage: "zh-CN",
+      defaultWorkers: 100,
+    },
+  );
+
+  assert.equal(result.workers, -1);
+  assert.equal(result.rateLimitQps, -1);
+  assert.equal(result.rateLimitRpm, -1);
+});

@@ -44,7 +44,7 @@ def translate_book_pages(
             page_idx=page_idx,
             api_key=api_key,
             batch_size=batch_size,
-            workers=max(1, workers),
+            workers=workers,
             model=model,
             base_url=base_url,
             progress_label=f"{progress_prefix} {page_idx + 1}/{page_count}",

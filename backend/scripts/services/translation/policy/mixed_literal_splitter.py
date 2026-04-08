@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from foundation.shared.prompt_loader import load_prompt
 from services.document_schema.semantics import structure_role
 from services.translation.llm.deepseek_client import request_chat_content
+from services.translation.parallelism import resolve_executor_workers
 from services.translation.policy.soft_hints import build_soft_rule_hints
 from services.translation.policy.soft_hints import extract_command_prefix
 from services.translation.policy.soft_hints import extract_line_texts
@@ -129,13 +130,14 @@ def split_mixed_literal_items(
             decision = _fallback_decision(item)
         return item_id, decision
 
-    if workers <= 1 or len(items) == 1:
+    resolved_workers = resolve_executor_workers(workers, len(items), cap=4)
+    if resolved_workers <= 1 or len(items) == 1:
         for item in items:
             item_id, decision = _run(item)
             results[item_id] = decision
         return results
 
-    with ThreadPoolExecutor(max_workers=max(1, min(workers, 4))) as executor:
+    with ThreadPoolExecutor(max_workers=resolved_workers) as executor:
         futures = {executor.submit(_run, item): item.get("item_id", "") for item in items}
         for future in as_completed(futures):
             item_id, decision = future.result()

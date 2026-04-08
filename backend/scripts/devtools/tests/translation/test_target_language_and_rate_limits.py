@@ -32,6 +32,15 @@ class TargetLanguageAndRateLimitTests(unittest.TestCase):
         self.assertAlmostEqual(module.compute_min_interval_seconds(rate_limit_qps=2, rate_limit_rpm=0), 0.5)
         self.assertAlmostEqual(module.compute_min_interval_seconds(rate_limit_qps=0, rate_limit_rpm=30), 2.0)
         self.assertAlmostEqual(module.compute_min_interval_seconds(rate_limit_qps=4, rate_limit_rpm=60), 1.0)
+        self.assertEqual(module.normalize_rate_limit(-1), 0)
+
+    def test_parallelism_helpers_support_unlimited_worker_sentinel(self):
+        module = load_module("retainpdf_parallelism", "services/translation/parallelism.py")
+
+        self.assertEqual(module.normalize_requested_workers(-1), -1)
+        self.assertEqual(module.resolve_executor_workers(-1, 5), 5)
+        self.assertEqual(module.resolve_executor_workers(-1, 5, cap=4), 4)
+        self.assertEqual(module.resolve_executor_workers(3, 10), 3)
 
 
 if __name__ == "__main__":

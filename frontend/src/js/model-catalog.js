@@ -10,6 +10,30 @@ function normalizeNonNegativeInt(value, fallback = 0) {
   return Math.trunc(raw);
 }
 
+function normalizePositiveOrUnlimitedInt(value, fallback = 1) {
+  const raw = typeof value === "number" ? value : Number.parseInt(trimString(value), 10);
+  if (!Number.isFinite(raw)) {
+    return fallback;
+  }
+  const normalized = Math.trunc(raw);
+  if (normalized === -1 || normalized > 0) {
+    return normalized;
+  }
+  return fallback;
+}
+
+function normalizeRateLimitControl(value, fallback = 0) {
+  const raw = typeof value === "number" ? value : Number.parseInt(trimString(value), 10);
+  if (!Number.isFinite(raw)) {
+    return fallback;
+  }
+  const normalized = Math.trunc(raw);
+  if (normalized === -1 || normalized >= 0) {
+    return normalized;
+  }
+  return fallback;
+}
+
 export function normalizeModelCatalogResponse(payload) {
   const rawItems = Array.isArray(payload?.data)
     ? payload.data
@@ -51,9 +75,9 @@ export function normalizeBrowserStoredConfig(rawConfig = {}, defaults = {}) {
     modelBaseUrl: trimString(rawConfig.modelBaseUrl || rawConfig.baseUrl) || defaultBaseUrl,
     model: trimString(rawConfig.model) || defaultModel,
     targetLanguage: trimString(rawConfig.targetLanguage) || defaultTargetLanguage,
-    workers: normalizeNonNegativeInt(rawConfig.workers, defaultWorkers) || defaultWorkers,
-    rateLimitQps: normalizeNonNegativeInt(rawConfig.rateLimitQps, 0),
-    rateLimitRpm: normalizeNonNegativeInt(rawConfig.rateLimitRpm, 0),
+    workers: normalizePositiveOrUnlimitedInt(rawConfig.workers, defaultWorkers),
+    rateLimitQps: normalizeRateLimitControl(rawConfig.rateLimitQps, 0),
+    rateLimitRpm: normalizeRateLimitControl(rawConfig.rateLimitRpm, 0),
   };
 }
 

@@ -252,7 +252,7 @@ impl ResolvedJobSpec {
     }
 
     pub fn resolved_workers(&self) -> i64 {
-        if self.translation.workers > 0 {
+        if self.translation.workers > 0 || self.translation.workers == -1 {
             return self.translation.workers;
         }
         let model = self.translation.model.to_lowercase();
@@ -347,5 +347,15 @@ mod tests {
         assert_eq!(spec.translation.target_language, "ja");
         assert_eq!(spec.translation.rate_limit_qps, 2);
         assert_eq!(spec.translation.rate_limit_rpm, 90);
+    }
+
+    #[test]
+    fn resolved_job_spec_preserves_unlimited_worker_sentinel() {
+        let mut input = CreateJobInput::default();
+        input.translation.workers = -1;
+
+        let spec = ResolvedJobSpec::from_input(input);
+
+        assert_eq!(spec.resolved_workers(), -1);
     }
 }

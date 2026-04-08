@@ -63,9 +63,8 @@
           <div class="credential-card-head">
             <div>
               <h3>翻译偏好</h3>
-              <p>控制目标语言，并在需要时收紧并发和请求速率。</p>
+              <p>选择目标语言；如有需要，再额外设置并发和请求速率。</p>
             </div>
-            <span class="credential-card-chip">优雅高级控制</span>
           </div>
           <label>
             <span>目标语言</span>
@@ -80,22 +79,22 @@
             </select>
           </label>
           <details class="credential-advanced-panel">
-            <summary>展开高级控制</summary>
+            <summary>更多选项</summary>
             <div class="credential-advanced-grid">
               <label>
                 <span>并发数</span>
-                <input id="browser-workers" type="number" min="1" step="1" inputmode="numeric" placeholder="默认 100" />
+                <input id="browser-workers" type="number" min="-1" step="1" inputmode="numeric" placeholder="-1 表示不限，留空用默认" />
               </label>
               <label>
                 <span>QPS 上限</span>
-                <input id="browser-rate-limit-qps" type="number" min="0" step="1" inputmode="numeric" placeholder="0 表示不限" />
+                <input id="browser-rate-limit-qps" type="number" min="-1" step="1" inputmode="numeric" placeholder="-1 表示不限" />
               </label>
               <label>
                 <span>RPM 上限</span>
-                <input id="browser-rate-limit-rpm" type="number" min="0" step="1" inputmode="numeric" placeholder="0 表示不限" />
+                <input id="browser-rate-limit-rpm" type="number" min="-1" step="1" inputmode="numeric" placeholder="-1 表示不限" />
               </label>
             </div>
-            <p class="credential-advanced-note">并发和限流会同时生效；若同时填写 QPS 与 RPM，系统会自动采用更严格的节奏。</p>
+            <p class="credential-advanced-note">并发和限流会同时生效；若同时填写 QPS 与 RPM，系统会自动采用更严格的节奏。-1 表示不限。</p>
           </details>
         </section>
       </div>

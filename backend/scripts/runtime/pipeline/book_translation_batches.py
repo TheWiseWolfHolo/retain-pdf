@@ -8,6 +8,7 @@ from services.translation.payload import apply_translated_text_map
 from services.translation.payload import pending_translation_items
 from services.translation.payload.parts.common import GROUP_ITEM_PREFIX
 from services.translation.llm import translate_batch
+from services.translation.parallelism import resolve_executor_workers
 
 from runtime.pipeline.book_translation_pages import save_pages
 
@@ -64,15 +65,16 @@ def translate_pending_units(
     effective_batch_size = 1
     batches = chunked(pending, effective_batch_size)
     total_batches = len(batches)
-    flush_interval = _save_flush_interval(workers=workers, total_batches=total_batches)
+    resolved_workers = resolve_executor_workers(workers, total_batches) if total_batches else 1
+    flush_interval = _save_flush_interval(workers=resolved_workers, total_batches=total_batches)
     print(
-        f"book: pending items={len(pending)} batches={total_batches} workers={max(1, workers)} "
+        f"book: pending items={len(pending)} batches={total_batches} workers={resolved_workers} "
         f"mode={mode} effective_batch_size={effective_batch_size}",
         flush=True,
     )
     if total_batches:
         print(f"book: save flush interval={flush_interval} batches", flush=True)
-    if workers <= 1:
+    if resolved_workers <= 1:
         dirty_pages: set[int] = set()
         for index, batch in enumerate(batches, start=1):
             batch_label = f"book: batch {index}/{total_batches}"
@@ -108,7 +110,7 @@ def translate_pending_units(
 
     completed = 0
     dirty_pages: set[int] = set()
-    with ThreadPoolExecutor(max_workers=max(1, workers)) as executor:
+    with ThreadPoolExecutor(max_workers=resolved_workers) as executor:
         futures = {
             executor.submit(
                 translate_batch,

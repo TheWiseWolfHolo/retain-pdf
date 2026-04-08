@@ -93,7 +93,7 @@ def review_and_apply_continuations(
         api_key=api_key,
         model=model,
         base_url=base_url,
-        workers=min(max(1, workers), 8),
+        workers=workers,
         save_pages_fn=save_pages,
     )
 

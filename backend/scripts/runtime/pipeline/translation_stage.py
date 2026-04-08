@@ -6,6 +6,7 @@ from services.translation.ocr.json_extractor import get_page_count
 from services.translation.ocr.json_extractor import load_ocr_json
 from runtime.pipeline.render_mode import resolve_page_range
 from services.translation.llm import DEFAULT_BASE_URL
+from services.translation.parallelism import normalize_requested_workers
 from services.translation.policy import build_book_translation_policy_config
 from runtime.pipeline.book_translation_flow import translate_book_with_global_continuations
 
@@ -54,13 +55,14 @@ def translate_book_pipeline(
             flush=True,
         )
     print(f"rule profile: {policy_config.rule_profile_name}", flush=True)
+    resolved_workers = normalize_requested_workers(workers)
     translated_pages_map, summaries = translate_book_with_global_continuations(
         data=data,
         output_dir=output_dir,
         page_indices=page_indices,
         api_key=api_key,
         batch_size=batch_size,
-        workers=max(1, workers),
+        workers=resolved_workers,
         model=model,
         base_url=base_url,
         mode=mode,

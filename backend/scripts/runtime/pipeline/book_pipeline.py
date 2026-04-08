@@ -11,6 +11,7 @@ from runtime.pipeline.render_stage import build_book_pipeline
 from runtime.pipeline.render_stage import run_render_stage
 from runtime.pipeline.translation_stage import translate_book_pipeline
 from services.translation.llm.request_limits import configure_request_limits
+from services.translation.parallelism import normalize_requested_workers
 from services.translation.llm.target_language import normalize_target_language
 
 
@@ -42,6 +43,7 @@ def run_book_pipeline(
 ) -> dict:
     total_started = time.perf_counter()
     resolved_target_language = normalize_target_language(target_language)
+    resolved_workers = normalize_requested_workers(workers)
     rate_limit_config = configure_request_limits(
         rate_limit_qps=rate_limit_qps,
         rate_limit_rpm=rate_limit_rpm,
@@ -61,7 +63,7 @@ def run_book_pipeline(
         start_page=start_page,
         end_page=end_page,
         batch_size=batch_size,
-        workers=max(1, workers),
+        workers=resolved_workers,
         mode=mode,
         target_language=resolved_target_language,
         classify_batch_size=max(1, classify_batch_size),

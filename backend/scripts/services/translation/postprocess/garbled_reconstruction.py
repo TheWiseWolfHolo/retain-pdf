@@ -9,6 +9,7 @@ from services.translation.llm.deepseek_client import extract_json_text
 from services.translation.llm.deepseek_client import get_api_key
 from services.translation.llm.deepseek_client import normalize_base_url
 from services.translation.llm.deepseek_client import request_chat_content
+from services.translation.parallelism import resolve_executor_workers
 from services.translation.llm.target_language import build_target_language_guidance
 from services.translation.llm.target_language import normalize_target_language
 
@@ -258,7 +259,7 @@ def _run_reconstruction_candidates(
         model=model,
         base_url=base_url,
     )
-    max_workers = max(1, min(workers, 4, len(candidate_list)))
+    max_workers = resolve_executor_workers(workers, len(candidate_list), cap=4)
     print(f"book: garbled reconstruction candidates={len(candidate_list)} workers={max_workers}", flush=True)
     print(
         f"book: garbled reconstruction provider={resolved_model} {normalize_base_url(resolved_base_url)}"

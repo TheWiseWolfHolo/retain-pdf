@@ -15,6 +15,7 @@ from services.translation.continuation import summarize_continuation_decisions
 from services.translation.policy import apply_translation_policies
 from services.translation.llm import translate_batch
 from services.translation.payload import ensure_translation_template, load_translations, save_translations
+from services.translation.parallelism import normalize_requested_workers, resolve_executor_workers
 
 
 def chunked(seq: list[dict], size: int) -> list[list[dict]]:
@@ -45,6 +46,7 @@ def translate_items_to_path(
     policy_config: TranslationPolicyConfig | None = None,
 ) -> dict:
     ensure_translation_template(items, translation_path, page_idx=page_idx)
+    normalized_workers = normalize_requested_workers(workers)
 
     payload = load_translations(translation_path)
     label = progress_label or f"page {page_idx + 1}"
@@ -75,7 +77,7 @@ def translate_items_to_path(
         payload=payload,
         mode=mode,
         classify_batch_size=classify_batch_size,
-        workers=max(1, workers),
+        workers=normalized_workers,
         api_key=api_key,
         model=model,
         base_url=base_url,
@@ -133,12 +135,13 @@ def translate_items_to_path(
     effective_batch_size = 1
     batches = chunked(pending, effective_batch_size)
     total_batches = len(batches)
+    resolved_workers = resolve_executor_workers(normalized_workers, total_batches) if total_batches else 1
     print(
-        f"{label}: pending items={len(pending)} batches={total_batches} workers={max(1, workers)} "
+        f"{label}: pending items={len(pending)} batches={total_batches} workers={resolved_workers} "
         f"mode={mode} effective_batch_size={effective_batch_size}",
         flush=True,
     )
-    if workers <= 1:
+    if resolved_workers <= 1:
         for index, batch in enumerate(batches, start=1):
             batch_label = f"{label}: batch {index}/{total_batches}"
             batch_started = time.perf_counter()
@@ -157,7 +160,7 @@ def translate_items_to_path(
             print(f"{batch_label}: saved in {batch_elapsed:.2f}s", flush=True)
     else:
         completed = 0
-        with ThreadPoolExecutor(max_workers=max(1, workers)) as executor:
+        with ThreadPoolExecutor(max_workers=resolved_workers) as executor:
             futures = {
                 executor.submit(
                     translate_batch,

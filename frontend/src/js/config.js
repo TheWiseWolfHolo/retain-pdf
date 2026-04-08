@@ -71,17 +71,17 @@ export function defaultTargetLanguage() {
 
 export function defaultWorkers() {
   const parsed = Number.parseInt(`${runtimeConfig.workers ?? ""}`.trim(), 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_WORKERS;
+  return Number.isFinite(parsed) && (parsed > 0 || parsed === -1) ? parsed : DEFAULT_WORKERS;
 }
 
 export function defaultRateLimitQps() {
   const parsed = Number.parseInt(`${runtimeConfig.rateLimitQps ?? ""}`.trim(), 10);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_RATE_LIMIT_QPS;
+  return Number.isFinite(parsed) && (parsed >= 0 || parsed === -1) ? parsed : DEFAULT_RATE_LIMIT_QPS;
 }
 
 export function defaultRateLimitRpm() {
   const parsed = Number.parseInt(`${runtimeConfig.rateLimitRpm ?? ""}`.trim(), 10);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_RATE_LIMIT_RPM;
+  return Number.isFinite(parsed) && (parsed >= 0 || parsed === -1) ? parsed : DEFAULT_RATE_LIMIT_RPM;
 }
 
 export function isDesktopMode() {
@@ -194,14 +194,17 @@ export function applyTranslationPreferenceInputs(
   rateLimitRpm,
 ) {
   const resolvedTargetLanguage = targetLanguage || defaultTargetLanguage();
-  const resolvedWorkers = Number.isFinite(Number(workers)) && Number(workers) > 0
-    ? Math.trunc(Number(workers))
+  const rawWorkers = Number(workers);
+  const resolvedWorkers = Number.isFinite(rawWorkers) && (rawWorkers > 0 || rawWorkers === -1)
+    ? Math.trunc(rawWorkers)
     : defaultWorkers();
-  const resolvedRateLimitQps = Number.isFinite(Number(rateLimitQps)) && Number(rateLimitQps) >= 0
-    ? Math.trunc(Number(rateLimitQps))
+  const rawRateLimitQps = Number(rateLimitQps);
+  const resolvedRateLimitQps = Number.isFinite(rawRateLimitQps) && (rawRateLimitQps >= 0 || rawRateLimitQps === -1)
+    ? Math.trunc(rawRateLimitQps)
     : defaultRateLimitQps();
-  const resolvedRateLimitRpm = Number.isFinite(Number(rateLimitRpm)) && Number(rateLimitRpm) >= 0
-    ? Math.trunc(Number(rateLimitRpm))
+  const rawRateLimitRpm = Number(rateLimitRpm);
+  const resolvedRateLimitRpm = Number.isFinite(rawRateLimitRpm) && (rawRateLimitRpm >= 0 || rawRateLimitRpm === -1)
+    ? Math.trunc(rawRateLimitRpm)
     : defaultRateLimitRpm();
 
   if ($("target_language")) {

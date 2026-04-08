@@ -59,7 +59,7 @@ def apply_translation_policies(
         api_key=api_key,
         model=model,
         base_url=base_url,
-        workers=max(1, workers),
+        workers=workers,
         rule_guidance=policy_config.rule_guidance,
     )
     metadata_fragment_skipped = (
