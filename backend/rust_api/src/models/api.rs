@@ -14,8 +14,8 @@ pub use super::library::{
     PatchConversationInput, PatchDocumentInput, PatchFavoriteInput, SearchQuery, SearchResultView,
 };
 pub use super::provider_profile::{
-    ProviderCapabilities, ProviderModelListView, ProviderProfileListView, ProviderProfileProbeView,
-    ProviderProfileUpsertInput, ProviderProfileView,
+    provider_profile_view, ProviderCapabilities, ProviderModelListView, ProviderProfileListView,
+    ProviderProfileProbeView, ProviderProfileUpsertInput, ProviderProfileView,
 };
 pub use super::public_contract::{public_request_payload, PublicResolvedJobSpec};
 pub use super::redaction::{

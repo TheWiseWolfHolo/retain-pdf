@@ -16,3 +16,6 @@ pub use super::ocr::{
     OcrProviderCredentialSpec, OcrProviderDiagnostics, OcrProviderErrorInfo, OcrProviderKind,
     OcrProviderOptionSpec, OcrProviderPublicDefinition, OcrTaskHandle, OcrTaskState, OcrTaskStatus,
 };
+pub use super::provider_profile::{
+    new_provider_profile_record, ProviderCapabilities, ProviderProfileRecord, PROVIDER_ADAPTERS,
+};

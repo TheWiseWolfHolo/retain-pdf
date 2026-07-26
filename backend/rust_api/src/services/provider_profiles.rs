@@ -2,14 +2,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use reqwest::{Client, Method};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 
 use crate::db::Db;
 use crate::error::AppError;
+use crate::models::api::{
+    provider_profile_view, ProviderModelListView, ProviderProfileListView,
+    ProviderProfileProbeView, ProviderProfileUpsertInput, ProviderProfileView,
+};
 use crate::models::domain::{
-    new_provider_profile_record, now_iso, provider_profile_view, ProviderModelListView,
-    ProviderProfileListView, ProviderProfileProbeView, ProviderProfileRecord,
-    ProviderProfileUpsertInput, ProviderProfileView, PROVIDER_ADAPTERS,
+    new_provider_profile_record, now_iso, ProviderProfileRecord, PROVIDER_ADAPTERS,
 };
 use crate::models::request::CreateJobInput;
 
@@ -494,7 +496,7 @@ mod tests {
             default_model: "claude-test".to_string(),
             api_key: Some("secret-value".to_string()),
             clear_api_key: false,
-            request_format: json!({}),
+            request_format: serde_json::json!({}),
             capability_overrides: ProviderCapabilities::default(),
         };
 
