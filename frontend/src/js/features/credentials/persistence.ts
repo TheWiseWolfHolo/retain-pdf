@@ -57,7 +57,7 @@ export async function persistDesktopCredentialsFromDialog({
       await checkApiConnectivity?.();
     },
   );
-  saveTaskOptions?.(buildTaskOptionsFromDialogValues({
+  await saveTaskOptions?.(buildTaskOptionsFromDialogValues({
     values,
     defaultModelBaseUrl,
   }));

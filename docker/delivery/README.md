@@ -95,7 +95,7 @@ http://127.0.0.1:40001
 ## 文件作用
 
 - `docker-compose.yml`
-  Docker 编排入口。默认直接拉取 Docker Hub 镜像并启动 `app` + `web`。
+  Docker 编排入口。默认直接拉取本 Fork 的 GHCR 镜像并启动 `app` + `web`。
 - `docker/app.env`
   后端运行参数。控制容器内路径、字体、端口、并发和上传限制。
 - `docker/web.env`
@@ -190,8 +190,8 @@ http://127.0.0.1:40001
 也可以这样启动：
 
 ```bash
-APP_IMAGE=wxyhgk/retainpdf-app:<version> \
-WEB_IMAGE=wxyhgk/retainpdf-web:<version> \
+APP_IMAGE=ghcr.io/thewisewolfholo/retainpdf-app:<version> \
+WEB_IMAGE=ghcr.io/thewisewolfholo/retainpdf-web:<version> \
 docker compose up -d
 ```
 
