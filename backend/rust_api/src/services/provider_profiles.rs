@@ -476,7 +476,8 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::models::domain::{ProviderCapabilities, ProviderProfileUpsertInput};
+    use crate::models::api::ProviderProfileUpsertInput;
+    use crate::models::domain::ProviderCapabilities;
 
     #[test]
     fn profile_secret_stays_out_of_views_and_resolved_jobs() {
