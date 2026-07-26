@@ -137,6 +137,7 @@ pub fn resolve_provider_profile_for_job(
             "provider profile has no credential: {profile_id}"
         )));
     }
+    let capabilities = profile.capabilities();
     let mut resolved = input.clone();
     resolved.translation.provider_profile_id = profile.profile_id;
     resolved.translation.provider_adapter = profile.adapter;
@@ -146,7 +147,7 @@ pub fn resolve_provider_profile_for_job(
     }
     resolved.translation.provider_request_format = profile.request_format;
     resolved.translation.provider_capabilities =
-        serde_json::to_value(profile.capabilities()).unwrap_or_default();
+        serde_json::to_value(capabilities).unwrap_or_default();
     Ok(resolved)
 }
 
