@@ -97,16 +97,6 @@ RetainPDF 从一开始就是要解决各类 PDF 的保留排版翻译问题，�
 
 自定义 OCR 首版只接受本地上传 PDF。由于 `/v1/ocr` 的通用响应只提供每页 Markdown、不保证提供文本坐标，RetainPDF 会把每页 Markdown 映射为整页文本块后进入现有翻译和渲染链。
 
-## 交流群
-
-如果你在使用、部署或二次开发 RetainPDF 时遇到问题，欢迎加入 QQ 交流群一起讨论。
-
-- QQ 群号：`1101779791`
-
-<p align="center">
-  <img src="resources/brand/QQ_Group.JPG" alt="RetainPDF QQ 交流群二维码" width="280" />
-</p>
-
 ## 开发者
 
 
