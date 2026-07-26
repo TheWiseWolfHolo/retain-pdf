@@ -10,7 +10,7 @@ import fitz
 
 
 DEFAULT_FOOTER_TEXT = "Translated By RetainPDF"
-DEFAULT_FOOTER_URL = "GitHub: https://github.com/wxyhgk/retain-pdf"
+DEFAULT_FOOTER_URL = "GitHub: https://github.com/TheWiseWolfHolo/retain-pdf"
 DEFAULT_FOOTER_HEIGHT_PT = 34.0
 
 

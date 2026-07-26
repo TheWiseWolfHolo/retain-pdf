@@ -80,7 +80,7 @@ RetainPDF 从一开始就是要解决各类 PDF 的保留排版翻译问题，�
 
 - `RetainPDF-Windows-<版本>-Setup.exe`
 
-当前稳定增强版为 [v4.2.1](https://github.com/TheWiseWolfHolo/retain-pdf/releases/tag/v4.2.1)。
+当前稳定增强版为 [v4.2.2](https://github.com/TheWiseWolfHolo/retain-pdf/releases/tag/v4.2.2)。
 
 ### Windows 桌面端
 

@@ -1,6 +1,6 @@
-import { APP_VERSION } from "../../generated/app-version.js";
+import { APP_VERSION, GITHUB_REPO } from "../../generated/app-version.js";
 
-const CACHE_KEY = "retainpdf:update-check:v1";
+const CACHE_KEY = "retainpdf:update-check:v2";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function isObject(value) {
@@ -19,6 +19,7 @@ function normalizeCachedInfo(value) {
   return {
     checkedAt,
     currentVersion: value.currentVersion || APP_VERSION,
+    repository: value.repository || "",
     latestVersion,
     hasUpdate: Boolean(value.hasUpdate),
     title: value.title || latestVersion,
@@ -39,9 +40,11 @@ export function createUpdateCachePort({
         return { info: null, fresh: false };
       }
       const ageMs = now() - cached.checkedAt;
+      const matchesCurrentBuild = cached.currentVersion === APP_VERSION
+        && cached.repository === GITHUB_REPO;
       return {
         info: cached,
-        fresh: ageMs >= 0 && ageMs < CACHE_TTL_MS,
+        fresh: matchesCurrentBuild && ageMs >= 0 && ageMs < CACHE_TTL_MS,
       };
     } catch {
       return { info: null, fresh: false };
@@ -56,6 +59,7 @@ export function createUpdateCachePort({
       const cached = {
         checkedAt: now(),
         currentVersion: info.currentVersion || APP_VERSION,
+        repository: GITHUB_REPO,
         latestVersion: info.latestVersion || "",
         hasUpdate: Boolean(info.hasUpdate),
         title: info.title || "",

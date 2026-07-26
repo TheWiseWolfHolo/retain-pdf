@@ -12,7 +12,7 @@ const outputPath = path.join(frontendRoot, "src/js/generated/app-version.ts");
 
 function repoFromHomepage(homepage = "") {
   const match = `${homepage || ""}`.match(/github\.com\/([^/]+\/[^/#?]+)/i);
-  return match ? match[1].replace(/\.git$/i, "") : "wxyhgk/retain-pdf";
+  return match ? match[1].replace(/\.git$/i, "") : "TheWiseWolfHolo/retain-pdf";
 }
 
 function normalizeGitVersion(value = "") {

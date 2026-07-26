@@ -5,12 +5,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { isNewerVersion } from "../src/js/features/app-update/github-release.js";
+import {
+  fetchLatestGithubRelease,
+  isNewerVersion,
+} from "../src/js/features/app-update/github-release.js";
 import {
   createUpdateCachePort,
   readUpdateCache,
   writeUpdateCache,
 } from "../src/js/features/app-update/state.js";
+import { APP_VERSION } from "../src/js/generated/app-version.js";
 import { mountAppUpdateFeature } from "../src/js/features/app-update/controller.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -46,6 +50,27 @@ test("isNewerVersion ignores unsupported prerelease labels", () => {
   assert.equal(isNewerVersion("v4.1.6-beta10", "4.1.6-preview1"), false);
 });
 
+test("update checks the fork's latest GitHub release", async () => {
+  const previousFetch = globalThis.fetch;
+  let requestedUrl = "";
+  globalThis.fetch = async (url) => {
+    requestedUrl = `${url}`;
+    return {
+      ok: true,
+      json: async () => ({ tag_name: "v4.2.2" }),
+    };
+  };
+  try {
+    await fetchLatestGithubRelease();
+    assert.equal(
+      requestedUrl,
+      "https://api.github.com/repos/TheWiseWolfHolo/retain-pdf/releases/latest",
+    );
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
 test("update cache reports freshness using 24 hour ttl", () => {
   let now = 1000;
   const cache = createUpdateCachePort({
@@ -54,7 +79,7 @@ test("update cache reports freshness using 24 hour ttl", () => {
   });
 
   cache.write({
-    currentVersion: "4.1.6-beta1",
+    currentVersion: APP_VERSION,
     latestVersion: "4.1.6-beta2",
     hasUpdate: true,
     htmlUrl: "https://github.com/wxyhgk/retain-pdf/releases/tag/v4.1.6-beta2",
@@ -91,6 +116,26 @@ test("update cache treats future timestamps as stale", () => {
   assert.equal(cached.info.latestVersion, "4.1.6-beta2");
 });
 
+test("update cache invalidates results from another app build", () => {
+  const storage = createMemoryStorage();
+  const cache = createUpdateCachePort({
+    storage,
+    now: () => 2000,
+  });
+  storage.setItem("retainpdf:update-check:v2", JSON.stringify({
+    checkedAt: 1999,
+    currentVersion: "4.2.0",
+    repository: "wxyhgk/retain-pdf",
+    latestVersion: "4.2.0",
+    hasUpdate: false,
+    htmlUrl: "https://github.com/wxyhgk/retain-pdf/releases/tag/v4.2.0",
+  }));
+
+  const cached = cache.read();
+
+  assert.equal(cached.fresh, false);
+});
+
 test("update cache tolerates missing or failing storage", () => {
   const missing = createUpdateCachePort({
     storage: null,
@@ -121,7 +166,7 @@ test("legacy update cache helpers use the default browser storage", () => {
   };
   try {
     writeUpdateCache({
-      currentVersion: "4.1.6-beta1",
+      currentVersion: APP_VERSION,
       latestVersion: "4.1.6-beta2",
       hasUpdate: true,
     }, 1000);
@@ -149,6 +194,7 @@ test("generate-app-version uses release version override", () => {
     const generated = fs.readFileSync(generatedVersionPath, "utf8");
 
     assert.match(generated, /export const APP_VERSION = "9\.8\.7-beta10";/);
+    assert.match(generated, /export const GITHUB_REPO = "TheWiseWolfHolo\/retain-pdf";/);
   } finally {
     fs.writeFileSync(generatedVersionPath, before, "utf8");
   }
