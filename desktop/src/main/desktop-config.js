@@ -94,7 +94,7 @@ function hasOwn(target, key) {
 }
 
 function normalizeOcrProvider(value) {
-  return value === "paddle" ? "paddle" : DEFAULT_OCR_PROVIDER;
+  return value === "custom_ocr" ? "custom_ocr" : DEFAULT_OCR_PROVIDER;
 }
 
 function normalizeTrimmedString(value, fallback = "") {

@@ -61,9 +61,9 @@ export function createCredentials({
   const settingsHubDialogStore = createSettingsHubDialogStore();
   const credentialsView = createCredentialsViewFeature({ dialogStore: credentialsDialogStore });
 
-  function saveCredentialTaskOptions(options: Record<string, unknown> = {}) {
+  async function saveCredentialTaskOptions(options: Record<string, unknown> = {}) {
     setDeveloperConfig(legacyState, { ...getDeveloperConfig(legacyState), ...options });
-    void savePersistedDeveloperStoredConfig(getDeveloperConfig(legacyState));
+    await savePersistedDeveloperStoredConfig(getDeveloperConfig(legacyState));
   }
 
   async function saveDesktopCredentialConfig(

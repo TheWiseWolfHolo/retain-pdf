@@ -13,7 +13,7 @@ RetainPDF 从一开始就是要解决各类 PDF 的保留排版翻译问题，�
 
 此外本项目是前后端分离、OCR、翻译、排版与交付打通的全栈项目，整体结构尽量解耦，既能直接使用，也方便后续开发者继续扩展、替换模块和二次开发。
 
-> 本仓库是基于上游 RetainPDF 持续同步的增强版。目前维护和发布的成品只面向 Windows。
+> 本仓库是基于上游 RetainPDF 持续同步的增强版。目前维护和发布 Windows 桌面版与 Docker 镜像。
 
 ## 本 Fork 增强
 
@@ -76,11 +76,16 @@ RetainPDF 从一开始就是要解决各类 PDF 的保留排版翻译问题，�
 
 ## 快速开始
 
-当前只发布 Windows 桌面版。前往 [TheWiseWolfHolo/retain-pdf Releases](https://github.com/TheWiseWolfHolo/retain-pdf/releases/latest)，下载：
+Windows 桌面版请前往 [TheWiseWolfHolo/retain-pdf Releases](https://github.com/TheWiseWolfHolo/retain-pdf/releases/latest)，下载：
 
 - `RetainPDF-Windows-<版本>-Setup.exe`
 
-当前稳定增强版为 [v4.2.2](https://github.com/TheWiseWolfHolo/retain-pdf/releases/tag/v4.2.2)。
+Docker 镜像发布到：
+
+- `ghcr.io/thewisewolfholo/retainpdf-app:<版本>`
+- `ghcr.io/thewisewolfholo/retainpdf-web:<版本>`
+
+当前稳定增强版为 [v4.2.3](https://github.com/TheWiseWolfHolo/retain-pdf/releases/tag/v4.2.3)。
 
 ### Windows 桌面端
 
