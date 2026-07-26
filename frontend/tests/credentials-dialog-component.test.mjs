@@ -69,6 +69,12 @@ function typeInput(element, value) {
   element.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
 }
 
+function selectInput(element, value) {
+  const setter = Object.getOwnPropertyDescriptor(dom.window.HTMLSelectElement.prototype, "value").set;
+  setter.call(element, value);
+  element.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+}
+
 function mockValidators(overrides = {}) {
   return {
     validateOcrToken: async (_apiPrefix, _providerId, token) => {
@@ -135,9 +141,10 @@ test("CredentialsDialog：常规入口走设置 API；setupMode 仍开独立首�
   // 常规：openBrowserCredentials → 设置中心 API 区（唯一日常入口）
   dom.window.document.dispatchEvent(new dom.window.CustomEvent(APP_EVENTS.openBrowserCredentials));
   await waitFor(() => byId("app-settings-dialog") !== null, "常规打开设置中心");
-  await waitFor(() => byId("browser-api-key") !== null, "API 区内嵌工作台");
+  await waitFor(() => byId("browser-ocr-profile-save-btn") !== null, "API 区内嵌工作台");
   assert.equal(byId("browser-credentials-dialog"), null, "常规不再弹独立接口设置窗");
-  assert.ok(byId("browser-credentials-save-btn"), "内嵌工作台有保存");
+  assert.ok(byId("translation-provider-save-btn"), "翻译 Provider 有独立保存");
+  assert.equal(byId("browser-credentials-save-btn"), null, "API 区不再使用容易混淆的全局保存");
 
   services.settingsHub.dialogStore.close();
   await waitFor(() => byId("app-settings-dialog") === null, "关闭设置");
@@ -152,9 +159,9 @@ test("CredentialsDialog：常规入口走设置 API；setupMode 仍开独立首�
   for (const id of [
     "browser-credentials-title", "browser-credentials-close-btn", "browser-credentials-status",
     "browser-credentials-tabs", "browser-credential-tab-api", "browser-credential-tab-task",
-    "browser-credentials-save-btn", "browser-paddle-token", "browser-paddle-validate-btn",
-    "browser-paddle-validation", "browser-api-key", "browser-deepseek-validate-btn",
-    "browser-deepseek-validation", "browser-deepseek-top-up-link", "browser-job-math-mode",
+    "browser-credentials-save-btn", "browser-ocr-profile-save-btn",
+    "translation-provider-preset", "translation-provider-save-btn",
+    "browser-job-math-mode",
   ]) {
     assert.ok(byId(id), `契约 id 缺失：#${id}`);
   }
@@ -177,7 +184,8 @@ test("凭据入口：设置 API 区内嵌工作台；#credential-gate-action 也
   click(byId("app-settings-btn"));
   await waitFor(() => byId("app-settings-dialog") !== null, "设置对话框打开");
   await waitFor(() => byId("browser-credentials-tabs") !== null, "API 区内嵌凭据工作台(tabs 挂载)");
-  assert.ok(byId("browser-credentials-save-btn"), "内嵌工作台带保存按钮");
+  assert.ok(byId("browser-ocr-profile-save-btn"), "OCR Profile 带独立保存按钮");
+  assert.ok(byId("translation-provider-save-btn"), "翻译 Provider 带独立保存按钮");
   assert.equal(byId("credentials-btn"), null, "门厅按钮已退役");
   assert.equal(byId("browser-credentials-dialog"), null, "设置内不再弹二层凭据对话框");
 
@@ -191,7 +199,7 @@ test("凭据入口：设置 API 区内嵌工作台；#credential-gate-action 也
   await waitFor(() => byId("credential-gate-action"), "工作流对话框打开后 credential-gate-action 挂载");
   click(byId("credential-gate-action"));
   await waitFor(() => byId("app-settings-dialog") !== null, "credential-gate-action 打开设置中心");
-  await waitFor(() => byId("browser-api-key") !== null, "落到 API 设置工作台");
+  await waitFor(() => byId("browser-ocr-profile-save-btn") !== null, "落到 API 设置工作台");
   assert.equal(byId("browser-credentials-dialog"), null, "常规门禁不弹独立接口窗");
 
   root.unmount();
@@ -199,127 +207,69 @@ test("凭据入口：设置 API 区内嵌工作台；#credential-gate-action 也
   host.remove();
 });
 
-test("CredentialsDialog：OCR/DeepSeek 校验三态(缺失/错误/通过)", async () => {
+test("CredentialsDialog：DeepSeek 合并为翻译 Provider 预设", async () => {
   const services = createServices();
   const { host, root } = await mountHome(services);
 
-  // 校验走设置内嵌工作台（与日常入口一致）
   dom.window.document.dispatchEvent(new dom.window.CustomEvent(APP_EVENTS.openBrowserCredentials));
   await waitFor(() => byId("app-settings-dialog") !== null, "打开设置");
-  await waitFor(() => byId("browser-paddle-validate-btn") !== null, "API 工作台就绪");
+  await waitFor(() => byId("translation-provider-preset") !== null, "翻译 Provider 工作台就绪");
 
-  // ---- OCR(paddle):缺失 → 错误 → 通过 ----
-  click(byId("browser-paddle-validate-btn"));
-  await waitFor(() => byId("browser-paddle-validation").title === "请先填写 Paddle Access Token。", "OCR 缺失态");
-  assert.equal(byId("browser-paddle-validation").classList.contains("is-error"), true);
-
-  typeInput(byId("browser-paddle-token"), "bad-token");
-  click(byId("browser-paddle-validate-btn"));
-  await waitFor(() => byId("browser-paddle-validation").title === "Token 无效", "OCR 错误态");
-  assert.equal(byId("browser-paddle-validation").classList.contains("is-error"), true);
-
-  typeInput(byId("browser-paddle-token"), "good-token");
-  click(byId("browser-paddle-validate-btn"));
-  await waitFor(() => byId("browser-paddle-validation").title === "Token 有效", "OCR 通过态");
-  assert.equal(byId("browser-paddle-validation").classList.contains("is-valid"), true);
-
-  // ---- DeepSeek:缺失 → 错误 → 通过(含充值提示,余额 < 2 元时才出现——
-  //      mock 返回 88 元,不应显示充值链接) ----
-  // 缺失态:deepseek-flow.js(kept)的 handleBrowserDeepSeekValidate 对"缺少
-  // Key"分支直接 return,不写校验徽标(与 OCR 分支的语义不同,这是既有
-  // 业务逻辑,不是本域重写的行为)——缺失态改由保存按钮的守卫触发验证。
-  click(byId("browser-credentials-save-btn"));
-  await waitFor(() => byId("browser-deepseek-validation").title === "请先填写 DeepSeek Key。", "DeepSeek 缺失态(经保存守卫触发)");
-  assert.equal(byId("browser-deepseek-validation").classList.contains("is-error"), true);
-  assert.notEqual(byId("app-settings-dialog"), null, "缺字段时保存应被拦截,设置对话框不关闭");
-
-  typeInput(byId("browser-api-key"), "bad-key");
-  click(byId("browser-deepseek-validate-btn"));
-  await waitFor(() => byId("browser-deepseek-validation").title === "DeepSeek Key 无效或已过期。", "DeepSeek 错误态");
-  assert.equal(byId("browser-deepseek-validation").classList.contains("is-error"), true);
-  assert.equal(byId("browser-deepseek-top-up-link").classList.contains("hidden"), true);
-
-  typeInput(byId("browser-api-key"), "good-key");
-  click(byId("browser-deepseek-validate-btn"));
-  await waitFor(() => byId("browser-deepseek-validation").classList.contains("is-valid"), "DeepSeek 通过态");
-  assert.match(byId("browser-deepseek-validation").title, /余额 CNY 88\.00/);
-  assert.equal(byId("browser-deepseek-top-up-link").classList.contains("hidden"), true, "余额充足不提示充值");
+  assert.equal(byId("translation-provider-preset").value, "deepseek");
+  assert.equal(byId("translation-provider-base-url").value, "https://api.deepseek.com/v1");
+  assert.equal(byId("translation-provider-model").value, "deepseek-chat");
+  assert.equal(byId("browser-api-key"), null, "不再渲染独立 DeepSeek 卡片");
+  assert.equal(byId("browser-deepseek-validate-btn"), null);
 
   root.unmount();
   services.dispose();
   host.remove();
 });
 
-test("CredentialsDialog：保存(浏览器模式)——写隐藏 input、同步 credentialsStatePort", async () => {
+test("CredentialsDialog：多个 OCR Profile 可保存、重开并切换", async () => {
   const services = createServices();
   const { host, root } = await mountHome(services);
 
-  // 阶段 C(shadcn 改造):paddle_token/api_key/ocr_provider 等隐藏 input
-  // (HiddenCredentialInputs)挂在 TranslationWorkflowDialog 内部(job-form),
-  // 该对话框换成 Radix Dialog 后不 forceMount Content——需要先打开一次才会
-  // 挂载(同其余阶段 C 对话框的先例)。
-  services.workflowDialog.openUpload();
-  await waitFor(() => byId("paddle_token"), "工作流对话框打开后隐藏 input 挂载");
-
-  // 常规保存入口：设置 → API
   dom.window.document.dispatchEvent(new dom.window.CustomEvent(APP_EVENTS.openBrowserCredentials));
   await waitFor(() => byId("app-settings-dialog") !== null, "打开设置");
-  await waitFor(() => byId("browser-api-key") !== null, "API 工作台就绪");
+  await waitFor(() => byId("browser-ocr-profile-save-btn") !== null, "OCR Profile 工作台就绪");
 
-  typeInput(byId("browser-paddle-token"), "paddle-secret");
-  typeInput(byId("browser-api-key"), "deepseek-secret");
-
-  click(byId("browser-credentials-save-btn"));
+  selectInput(byId("browser-ocr-provider-select"), "custom_ocr");
+  typeInput(byId("browser-ocr-profile-name"), "公司 OCR");
+  typeInput(byId("browser-ocr-profile-api-key"), "custom-secret");
+  typeInput(byId("browser-custom-ocr-base-url"), "https://ocr.example/v1/ocr");
+  typeInput(byId("browser-custom-ocr-model"), "ocr-model-v2");
+  click(byId("browser-ocr-profile-save-btn"));
   await waitFor(
-    () => defaultCredentialsStatePort.getCredentials().modelApiKey === "deepseek-secret",
-    "保存后 credentialsStatePort 更新",
+    () => byId("browser-ocr-profile-status")?.textContent === "OCR Profile 已保存并启用",
+    "自定义 OCR Profile 保存",
   );
 
-  assert.equal(byId("paddle_token").value, "paddle-secret", "隐藏 input 桥接:paddle_token");
-  assert.equal(byId("api_key").value, "deepseek-secret", "隐藏 input 桥接:api_key");
-  assert.equal(byId("ocr_provider").value, "paddle");
+  click(byId("browser-ocr-profile-new-btn"));
+  typeInput(byId("browser-ocr-profile-name"), "备用 Paddle");
+  typeInput(byId("browser-ocr-profile-api-key"), "paddle-secret");
+  click(byId("browser-ocr-profile-save-btn"));
+  await waitFor(
+    () => byId("browser-ocr-profile-select")?.options.length === 2,
+    "第二个 OCR Profile 保存",
+  );
 
-  const credentials = defaultCredentialsStatePort.getCredentials();
-  assert.equal(credentials.paddleToken, "paddle-secret");
-  assert.equal(credentials.modelApiKey, "deepseek-secret");
+  services.settingsHub.dialogStore.close();
+  await waitFor(() => byId("app-settings-dialog") === null, "关闭设置");
+  dom.window.document.dispatchEvent(new dom.window.CustomEvent(APP_EVENTS.openBrowserCredentials));
+  await waitFor(
+    () => byId("browser-ocr-profile-select")?.options.length === 2,
+    "重新打开后恢复两个 OCR Profile",
+  );
 
-  root.unmount();
-  services.dispose();
-  host.remove();
-});
-
-test("CredentialsDialog：保存(桌面模式)——走 saveDesktopConfig 分支", async () => {
-  const desktopCalls = [];
-  const services = createServices({
-    initialDesktopMode: true,
-    saveDesktopConfig: async (browserConfig, afterSave) => {
-      desktopCalls.push({ browserConfig });
-      await afterSave?.();
-      return { firstRunCompleted: true };
-    },
-  });
-  const { host, root } = await mountHome(services);
-
-  // 阶段 C(shadcn 改造):saveDesktopConfig 分支同样会读 HiddenCredentialInputs
-  // 挂在 TranslationWorkflowDialog 内部的隐藏 input(paddle_token 等),需要先
-  // 打开一次工作流对话框才会挂载。
-  services.workflowDialog.openUpload();
-  await waitFor(() => byId("paddle_token"), "工作流对话框打开后隐藏 input 挂载");
-
-  dom.window.document.dispatchEvent(new dom.window.CustomEvent(APP_EVENTS.openBrowserCredentials, {
-    detail: { setupMode: true },
-  }));
-  await waitFor(() => byId("browser-credentials-dialog") !== null, "打开对话框(setupMode)");
-
-  typeInput(byId("browser-paddle-token"), "paddle-desktop");
-  typeInput(byId("browser-api-key"), "deepseek-desktop");
-
-  click(byId("browser-credentials-save-btn"));
-  await waitFor(() => desktopCalls.length === 1, "saveDesktopConfig 被调用");
-  assert.equal(desktopCalls[0].browserConfig.modelApiKey, "deepseek-desktop");
-  assert.equal(desktopCalls[0].browserConfig.paddleToken, "paddle-desktop");
-  assert.equal(desktopCalls[0].browserConfig.markConfigured, true, "setupMode 下应标记首次配置完成");
-  await waitFor(() => byId("browser-credentials-dialog") === null, "保存成功后对话框关闭");
+  selectInput(byId("browser-ocr-profile-select"), "ocr-default");
+  await waitFor(
+    () => defaultCredentialsStatePort.getCredentials().ocrProvider === "custom_ocr",
+    "切回自定义 OCR Profile",
+  );
+  const config = services.features.workflowFeature.developerConfigWithDefaults();
+  assert.equal(config.ocrBaseUrl, "https://ocr.example/v1/ocr");
+  assert.equal(config.ocrModel, "ocr-model-v2");
 
   root.unmount();
   services.dispose();

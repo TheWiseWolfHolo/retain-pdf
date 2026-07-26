@@ -76,7 +76,7 @@ const TABS = [
 ];
 
 const PANE_HEADS = {
-  api: { title: "API 设置", desc: "配置 OCR Token、DeepSeek Key、模型地址和任务选项，保存后立即生效。" },
+  api: { title: "API 设置", desc: "管理 OCR 与翻译 Provider Profiles、请求格式和任务选项，保存后立即生效。" },
   glossary: { title: "术语表", desc: "维护固定译法、保留词和专业术语偏好。" },
   appearance: { title: "外观", desc: "选择界面配色，立即生效并记住本机选择。" },
   update: { title: "更新", desc: "查看当前版本，并从 GitHub Releases 重新检查更新。" },

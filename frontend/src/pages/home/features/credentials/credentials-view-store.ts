@@ -167,8 +167,8 @@ export function createCredentialsViewFeature({
 
   const elementsPort = {
     elements,
-    // OCR provider 面板可见性由 OcrProviderPanels.jsx 直接订阅
-    // credentialsStatePort(credentials.ocrProvider)渲染;不需要
+    // OCR Profile 面板直接订阅 credentialsStatePort(credentials.ocrProvider)
+    // 渲染当前配置;不需要
     // dialog-sync.js 原本那种命令式二次同步,no-op。
     syncOcrProviderControls: () => {},
   };

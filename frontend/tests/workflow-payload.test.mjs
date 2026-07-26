@@ -12,6 +12,7 @@ import {
   createWorkflowConfigPort,
   resolveMockScenario,
 } from "../src/js/features/workflow/config-port.js";
+import { buildDeveloperConfigWithDefaults } from "../src/js/features/workflow/rules.js";
 
 const constants = {
   DEFAULT_MODEL_VERSION: "PP-StructureV3",
@@ -56,6 +57,41 @@ function developerConfig(overrides = {}) {
     ...overrides,
   };
 }
+
+test("developer config preserves active OCR profile URL and model", () => {
+  const profiles = [{
+    profileId: "ocr-company",
+    name: "Company OCR",
+    provider: "custom_ocr",
+    baseUrl: "https://ocr.example/v1/ocr",
+    model: "ocr-model-v2",
+    apiKey: "secret",
+  }];
+  const config = buildDeveloperConfigWithDefaults({
+    saved: {
+      ocrProfiles: profiles,
+      ocrProfileId: "ocr-company",
+      ocrBaseUrl: "https://ocr.example/v1/ocr",
+      ocrModel: "ocr-model-v2",
+    },
+    normalizeWorkflow: () => "book",
+    normalizeMathMode: () => "direct_typst",
+    defaults: {
+      workers: 4,
+      batchSize: 12,
+      classifyBatchSize: 8,
+      compileWorkers: 2,
+      timeoutSeconds: 3600,
+    },
+    defaultModelName: () => "deepseek-chat",
+    defaultModelBaseUrl: () => "https://api.deepseek.com/v1",
+  });
+
+  assert.equal(config.ocrProfileId, "ocr-company");
+  assert.equal(config.ocrBaseUrl, "https://ocr.example/v1/ocr");
+  assert.equal(config.ocrModel, "ocr-model-v2");
+  assert.deepEqual(config.ocrProfiles, profiles);
+});
 
 test("buildTranslationPayload uses injected glossary and model key without DOM", () => {
   const payload = buildTranslationPayload({

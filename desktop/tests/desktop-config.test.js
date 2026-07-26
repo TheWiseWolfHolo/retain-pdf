@@ -20,6 +20,25 @@ test("custom OCR provider survives desktop save and reload", (t) => {
     ocrProvider: "custom_ocr",
     paddleToken: "custom-ocr-key",
     developerConfig: {
+      ocrProfileId: "ocr-company",
+      ocrProfiles: [
+        {
+          profileId: "ocr-company",
+          name: "Company OCR",
+          provider: "custom_ocr",
+          baseUrl: "https://ocr.example/v1",
+          model: "mistral-ocr-latest",
+          apiKey: "custom-ocr-key",
+        },
+        {
+          profileId: "ocr-paddle",
+          name: "Paddle Backup",
+          provider: "paddle",
+          baseUrl: "",
+          model: "",
+          apiKey: "paddle-key",
+        },
+      ],
       ocrBaseUrl: "https://ocr.example/v1",
       ocrModel: "mistral-ocr-latest",
     },
@@ -30,4 +49,6 @@ test("custom OCR provider survives desktop save and reload", (t) => {
   assert.equal(reloaded.paddleToken, "custom-ocr-key");
   assert.equal(reloaded.developerConfig.ocrBaseUrl, "https://ocr.example/v1");
   assert.equal(reloaded.developerConfig.ocrModel, "mistral-ocr-latest");
+  assert.equal(reloaded.developerConfig.ocrProfiles.length, 2);
+  assert.equal(reloaded.developerConfig.ocrProfiles[1].provider, "paddle");
 });
