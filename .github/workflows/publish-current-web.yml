@@ -7,6 +7,10 @@ name: Publish Current Web Image
         description: "目标平台（逗号分隔）"
         required: false
         default: "linux/amd64,linux/arm64"
+      release_tag:
+        description: "可选正式标签，例如 v4.2.0"
+        required: false
+        default: ""
   push:
     branches:
       - main
@@ -60,12 +64,16 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha,prefix=current-
+            type=raw,value=${{ inputs.release_tag }},enable=${{ inputs.release_tag != '' }}
 
       - name: Resolve frontend version
         id: frontend-version
         shell: bash
         run: |
-          version="$(git describe --tags --always --dirty 2>/dev/null || git rev-parse --short HEAD)"
+          version="${{ inputs.release_tag }}"
+          if [ -z "$version" ]; then
+            version="$(git describe --tags --always --dirty 2>/dev/null || git rev-parse --short HEAD)"
+          fi
           version="${version#v}"
           if [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+[^-]*)-([0-9]+)-g([0-9a-f]+)(-dirty)?$ ]]; then
             suffix=""
