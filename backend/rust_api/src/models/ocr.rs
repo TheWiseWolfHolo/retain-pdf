@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 pub enum OcrProviderKind {
     Mineru,
     Paddle,
+    Custom,
     Local,
     Unknown,
 }

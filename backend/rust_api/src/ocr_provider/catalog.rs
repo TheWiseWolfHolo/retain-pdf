@@ -5,8 +5,9 @@ use std::collections::BTreeMap;
 
 use super::provider_config;
 use super::{
-    mineru, paddle, OcrProviderArtifactLayout, OcrProviderCapabilities, OcrProviderCredentialSpec,
-    OcrProviderDiagnostics, OcrProviderKind, OcrProviderOptionSpec, OcrProviderPublicDefinition,
+    custom, mineru, paddle, OcrProviderArtifactLayout, OcrProviderCapabilities,
+    OcrProviderCredentialSpec, OcrProviderDiagnostics, OcrProviderKind, OcrProviderOptionSpec,
+    OcrProviderPublicDefinition,
 };
 
 const MINERU_RESULT_FILE_NAME: &str = "mineru_result.json";
@@ -55,6 +56,20 @@ pub fn provider_definition(kind: &OcrProviderKind) -> Option<OcrProviderDefiniti
                 "paddle_result.json",
             ),
         }),
+        OcrProviderKind::Custom => Some(OcrProviderDefinition {
+            kind: OcrProviderKind::Custom,
+            key: "custom_ocr",
+            display_name: "Custom OCR",
+            token_field_name: "custom_ocr_api_key",
+            token_env_name: "RETAIN_CUSTOM_OCR_API_KEY",
+            capabilities: custom::capabilities(),
+            artifact_layout: OcrProviderArtifactLayout::new(
+                "custom_ocr_result.json",
+                "custom_ocr_bundle.zip",
+                "custom_ocr_raw",
+                "custom_ocr_layout.json",
+            ),
+        }),
         OcrProviderKind::Local => Some(OcrProviderDefinition {
             kind: OcrProviderKind::Local,
             key: "local",
@@ -99,8 +114,9 @@ fn provider_sort_rank(key: &str) -> u8 {
     match key {
         "mineru" => 0,
         "paddle" => 1,
-        "local" => 2,
-        _ => 3,
+        "custom_ocr" => 2,
+        "local" => 3,
+        _ => 4,
     }
 }
 
@@ -138,6 +154,7 @@ fn kind_for_public_key(key: &str, provider_kind: &str) -> OcrProviderKind {
     match key {
         "mineru" => OcrProviderKind::Mineru,
         "paddle" => OcrProviderKind::Paddle,
+        "custom_ocr" => OcrProviderKind::Custom,
         "local" => OcrProviderKind::Local,
         _ if matches!(provider_kind, "local_command" | "remote_command") => OcrProviderKind::Local,
         _ => OcrProviderKind::Unknown,
@@ -300,6 +317,7 @@ pub fn provider_token<'a>(kind: &OcrProviderKind, input: &'a OcrInput) -> &'a st
     match kind {
         OcrProviderKind::Mineru => input.mineru_token.trim(),
         OcrProviderKind::Paddle => input.paddle_token.trim(),
+        OcrProviderKind::Custom => input.custom_ocr_api_key.trim(),
         OcrProviderKind::Local => "",
         OcrProviderKind::Unknown => "",
     }
@@ -309,6 +327,7 @@ pub fn provider_model_version<'a>(kind: &OcrProviderKind, input: &'a OcrInput) -
     match kind {
         OcrProviderKind::Mineru => input.model_version.trim(),
         OcrProviderKind::Paddle => input.paddle_model.trim(),
+        OcrProviderKind::Custom => input.custom_ocr_model.trim(),
         OcrProviderKind::Local => "local",
         OcrProviderKind::Unknown => "",
     }
@@ -371,6 +390,12 @@ mod tests {
             Some("paddle")
         );
         assert_eq!(
+            provider_definition(&OcrProviderKind::Custom)
+                .as_ref()
+                .map(|item| item.key),
+            Some("custom_ocr")
+        );
+        assert_eq!(
             provider_definition(&OcrProviderKind::Local)
                 .as_ref()
                 .map(|item| item.key),
@@ -394,7 +419,10 @@ mod tests {
 
     #[test]
     fn supported_provider_keys_lists_all_supported_backends() {
-        assert_eq!(supported_provider_keys(), vec!["mineru", "paddle", "local"]);
+        assert_eq!(
+            supported_provider_keys(),
+            vec!["mineru", "paddle", "custom_ocr", "local"]
+        );
     }
 
     #[test]

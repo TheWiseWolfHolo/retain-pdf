@@ -20,6 +20,8 @@ export interface DeveloperStoredConfig {
   targetLanguage?: string;
   rateLimitQps?: number;
   rateLimitRpm?: number;
+  ocrBaseUrl?: string;
+  ocrModel?: string;
   [key: string]: unknown;
 }
 

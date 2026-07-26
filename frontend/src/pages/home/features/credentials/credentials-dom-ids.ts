@@ -29,6 +29,8 @@ export const CREDENTIAL_DOM_IDS = {
     tabTask: "browser-credential-tab-task",
     saveButton: "browser-credentials-save-btn",
     ocrProviderSelect: "browser-ocr-provider-select",
+    ocrBaseUrl: "browser-custom-ocr-base-url",
+    ocrModel: "browser-custom-ocr-model",
     apiKey: "browser-api-key",
     modelBaseUrl: "browser-model-base-url",
     modelName: "browser-model-name",

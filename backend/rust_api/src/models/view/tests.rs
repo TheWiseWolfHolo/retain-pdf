@@ -67,6 +67,7 @@ fn job_detail_view_contains_request_payload() {
     let mut input = CreateJobInput::default();
     input.ocr.page_ranges = "1-5".to_string();
     input.ocr.mineru_token = "mineru-secret".to_string();
+    input.ocr.custom_ocr_api_key = "custom-ocr-secret".to_string();
     input.source.upload_id = "upload-1".to_string();
     input.translation.api_key = "sk-secret".to_string();
     let job = JobSnapshot::new(
@@ -87,8 +88,10 @@ fn job_detail_view_contains_request_payload() {
     assert_eq!(detail.request_payload.ocr.page_ranges, "1-5");
     assert_eq!(detail.request_payload.source.upload_id, "upload-1");
     assert!(detail.request_payload.ocr.mineru_token.is_empty());
+    assert!(detail.request_payload.ocr.custom_ocr_api_key.is_empty());
     assert!(detail.request_payload.translation.api_key.is_empty());
     assert!(detail.request_payload.ocr.mineru_token_configured);
+    assert!(detail.request_payload.ocr.custom_ocr_api_key_configured);
     assert!(detail.request_payload.translation.api_key_configured);
 }
 
@@ -97,12 +100,17 @@ fn redact_helpers_remove_structured_and_inline_secrets() {
     let mut input = CreateJobInput::default();
     input.translation.api_key = "sk-secret".to_string();
     input.ocr.mineru_token = "mineru-secret".to_string();
+    input.ocr.custom_ocr_api_key = "custom-ocr-secret".to_string();
     let spec = crate::models::ResolvedJobSpec::from_input(input);
     let secrets = sensitive_values(&spec);
 
-    let text = redact_text("token=sk-secret mineru-secret", &secrets);
+    let text = redact_text(
+        "token=sk-secret mineru-secret custom-ocr-secret",
+        &secrets,
+    );
     assert!(!text.contains("sk-secret"));
     assert!(!text.contains("mineru-secret"));
+    assert!(!text.contains("custom-ocr-secret"));
     assert!(text.contains("[REDACTED]"));
 
     let payload = serde_json::json!({

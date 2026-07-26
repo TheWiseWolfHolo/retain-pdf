@@ -20,6 +20,12 @@ pub struct OcrInput {
     #[serde(default = "default_paddle_model")]
     pub paddle_model: String,
     #[serde(default)]
+    pub custom_ocr_api_key: String,
+    #[serde(default)]
+    pub custom_ocr_base_url: String,
+    #[serde(default)]
+    pub custom_ocr_model: String,
+    #[serde(default)]
     pub is_ocr: bool,
     #[serde(default)]
     pub disable_formula: bool,
@@ -54,6 +60,9 @@ impl Default for OcrInput {
             paddle_token: String::new(),
             paddle_api_url: String::new(),
             paddle_model: default_paddle_model(),
+            custom_ocr_api_key: String::new(),
+            custom_ocr_base_url: String::new(),
+            custom_ocr_model: String::new(),
             is_ocr: false,
             disable_formula: false,
             disable_table: false,

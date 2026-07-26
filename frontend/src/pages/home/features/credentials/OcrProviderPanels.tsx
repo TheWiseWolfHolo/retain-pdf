@@ -33,11 +33,23 @@ function resetHandlerFor(handlers) {
 }
 
 export function OcrProviderPanels() {
-  const { credentials, view, handlers, tokenInputRef } = useCredentialsController();
+  const { credentials, view, handlers, tokenInputRef, elementsRef } = useCredentialsController();
   const activeProvider = credentials.ocrProvider;
 
   return (
     <div className="credential-provider-panels">
+      <label>
+        <span className="developer-label">OCR Provider</span>
+        <select
+          id="browser-ocr-provider-select"
+          value={activeProvider}
+          onChange={(event) => handlers?.changeProvider?.(event)}
+        >
+          {OCR_PROVIDER_DEFINITIONS.map((provider) => (
+            <option key={provider.id} value={provider.id}>{provider.label}</option>
+          ))}
+        </select>
+      </label>
       {OCR_PROVIDER_DEFINITIONS.map((provider) => {
         const active = provider.id === activeProvider;
         const validation = view.validations[provider.id] || { message: "", tone: "" };
@@ -67,8 +79,13 @@ export function OcrProviderPanels() {
                     autoComplete="off"
                     placeholder={provider.tokenPlaceholder}
                     defaultValue=""
-                    ref={tokenInputRef(provider.id)}
-                    onInput={() => resetHandlerFor(handlers)?.()}
+                    ref={(node) => {
+                      tokenInputRef(provider.id)(node);
+                      if (active) {
+                        elementsRef.activeOcrTokenInput = node || null;
+                      }
+                    }}
+                    onInput={() => (handlers?.resetOcrValidation || resetHandlerFor(handlers))?.()}
                   />
                 </span>
                 <a className="credential-card-link" href={provider.docsUrl} target="_blank" rel="noopener noreferrer">
@@ -76,6 +93,33 @@ export function OcrProviderPanels() {
                 </a>
               </span>
             </label>
+            {provider.id === "custom_ocr" ? (
+              <>
+                <label>
+                  <span className="developer-label">Base URL</span>
+                  <input
+                    id="browser-custom-ocr-base-url"
+                    type="url"
+                    defaultValue="https://api.mistral.ai"
+                    placeholder="https://example.com 或 https://example.com/v1"
+                    ref={(node) => { elementsRef.ocrBaseUrlInput = node || null; }}
+                  />
+                </label>
+                <label>
+                  <span className="developer-label">OCR 模型</span>
+                  <input
+                    id="browser-custom-ocr-model"
+                    type="text"
+                    defaultValue="mistral-ocr-latest"
+                    placeholder="mistral-ocr-latest"
+                    ref={(node) => { elementsRef.ocrModelInput = node || null; }}
+                  />
+                </label>
+                <p className="credential-card-description">
+                  请求会发送到 Base URL 下的 /v1/ocr，使用 multipart 的 model 与 file 字段。
+                </p>
+              </>
+            ) : null}
             <div className="credential-card-actions">
               {provider.supportsValidation ? (
                 <button

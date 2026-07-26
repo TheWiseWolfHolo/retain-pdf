@@ -14,6 +14,7 @@ mod bundle_download_retry;
 mod bundle_events;
 mod bundle_ready_wait;
 mod bundle_retry_policy;
+mod custom_ocr;
 mod markdown_bundle;
 mod mineru;
 mod mineru_polling;

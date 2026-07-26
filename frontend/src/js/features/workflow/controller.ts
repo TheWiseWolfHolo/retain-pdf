@@ -361,11 +361,16 @@ export function mountWorkflowFeature({
     }) || {};
   }
 
-  function buildOcrPayload(pageRanges, submitValues: WorkflowSubmitValues = currentWorkflowSubmitValues()) {
+  function buildOcrPayload(
+    pageRanges,
+    submitValues: WorkflowSubmitValues = currentWorkflowSubmitValues(),
+    developerConfig: WorkflowDeveloperConfig = developerConfigWithDefaults(),
+  ) {
     return buildOcrPayloadRequest({
       pageRanges,
       ocrProvider: submitValues.ocrProvider,
       ocrToken: submitValues.ocrToken,
+      developerConfig,
       defaultPaddleApiUrl,
       constants,
     });
@@ -403,7 +408,7 @@ export function mountWorkflowFeature({
     const developerConfig = developerConfigWithDefaults();
     const submitValues = currentWorkflowSubmitValues();
     return {
-      ocr: buildOcrPayload(pageRanges, submitValues),
+      ocr: buildOcrPayload(pageRanges, submitValues, developerConfig),
       translation: buildTranslationPayload(developerConfig, submitValues),
     };
   }
@@ -428,7 +433,7 @@ export function mountWorkflowFeature({
       },
     };
     if (workflow === WORKFLOW_BOOK || workflow === WORKFLOW_TRANSLATE) {
-      payload.ocr = buildOcrPayload(pageRanges, submitValues);
+      payload.ocr = buildOcrPayload(pageRanges, submitValues, developerConfig);
       payload.translation = buildTranslationPayload(developerConfig, submitValues);
     }
     if (workflowUsesRenderStage(workflow)) {

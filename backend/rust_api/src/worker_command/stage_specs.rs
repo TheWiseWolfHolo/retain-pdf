@@ -54,6 +54,12 @@ pub(crate) fn write_normalize_stage_spec(
     let provider_kind = require_supported_provider(&request.ocr.provider)
         .context("resolve OCR provider for normalize stage spec")?;
     let provider_version = provider_model_version(&provider_kind, &request.ocr).to_string();
+    let normalize_provider =
+        if matches!(provider_kind, crate::ocr_provider::OcrProviderKind::Custom) {
+            "generic_flat_ocr"
+        } else {
+            request.ocr.provider.as_str()
+        };
     let payload = json!({
         "schema_version": NORMALIZE_STAGE_SCHEMA_VERSION,
         "stage": "normalize",
@@ -63,7 +69,7 @@ pub(crate) fn write_normalize_stage_spec(
             "workflow": request.workflow,
         },
         "inputs": {
-            "provider": request.ocr.provider,
+            "provider": normalize_provider,
             "source_json": source_json_path,
             "source_pdf": source_pdf_path,
             "provider_version": provider_version,

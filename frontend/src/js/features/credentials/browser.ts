@@ -38,6 +38,8 @@ import type {
 export interface CredentialDialogElements {
   dialog?: HTMLDialogElement | HTMLElement | boolean | null;
   paddleInput?: HTMLInputElement | null;
+  ocrBaseUrlInput?: HTMLInputElement | null;
+  ocrModelInput?: HTMLInputElement | null;
   apiKeyInput?: HTMLInputElement | null;
   modelBaseUrlInput?: HTMLInputElement | null;
   modelNameInput?: HTMLInputElement | null;
@@ -470,6 +472,11 @@ export function mountBrowserCredentialsFeature({
     resetPaddleValidation: () => {
       credentialsStatePort.resetOcrValidationCache?.();
       viewPort.setOcrValidationMessage("", "", "paddle");
+    },
+    resetOcrValidation: () => {
+      const provider = currentOcrProvider();
+      credentialsStatePort.resetOcrValidationCache?.();
+      viewPort.setOcrValidationMessage("", "", provider);
     },
     resetDeepSeekValidation: () => {
       viewPort.setDeepSeekValidationMessage("", "");

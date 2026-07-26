@@ -24,6 +24,7 @@
 - [OCR-only 任务](03-OCR/02-OCR-only任务.md)
 - [local_command 插件](03-OCR/04-local-command插件.md)
 - [remote_command 插件](03-OCR/05-remote-command插件.md)
+- [自定义 /v1/ocr](03-OCR/06-custom-v1-ocr.md)
 - [翻译参数](04-翻译/01-翻译参数.md)
 - [翻译并发与批次](04-翻译/02-并发与批次.md)
 - [术语表](04-翻译/03-术语表.md)

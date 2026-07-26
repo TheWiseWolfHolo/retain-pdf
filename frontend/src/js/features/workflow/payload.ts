@@ -11,6 +11,8 @@ export interface WorkflowDeveloperConfig {
   targetLanguage?: string;
   rateLimitQps?: number;
   rateLimitRpm?: number;
+  ocrBaseUrl?: string;
+  ocrModel?: string;
   glossaryId?: string;
   workers?: number;
   batchSize?: number;
@@ -52,6 +54,7 @@ export interface BuildOcrPayloadOptions {
   pageRanges?: string;
   ocrProvider?: string;
   ocrToken?: string;
+  developerConfig?: WorkflowDeveloperConfig;
   defaultPaddleApiUrl: () => string;
   constants: WorkflowPayloadConstants;
 }
@@ -83,6 +86,7 @@ export function buildOcrPayload({
   pageRanges,
   ocrProvider,
   ocrToken,
+  developerConfig = {},
   defaultPaddleApiUrl,
   constants,
 }: BuildOcrPayloadOptions) {
@@ -97,6 +101,10 @@ export function buildOcrPayload({
   };
   if (definition.id === "paddle") {
     payload.paddle_api_url = defaultPaddleApiUrl() || "https://paddleocr.aistudio-app.com";
+  }
+  if (definition.id === "custom_ocr") {
+    payload.custom_ocr_base_url = developerConfig.ocrBaseUrl || "https://api.mistral.ai";
+    payload.custom_ocr_model = developerConfig.ocrModel || "mistral-ocr-latest";
   }
   return payload;
 }

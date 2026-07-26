@@ -1,4 +1,5 @@
 mod catalog;
+pub mod custom;
 pub mod mineru;
 pub mod paddle;
 mod provider_config;
@@ -26,6 +27,7 @@ pub fn parse_provider_kind(value: &str) -> OcrProviderKind {
     match value.trim().to_ascii_lowercase().as_str() {
         "mineru" => OcrProviderKind::Mineru,
         "paddle" => OcrProviderKind::Paddle,
+        "custom" | "custom_ocr" => OcrProviderKind::Custom,
         "local" => OcrProviderKind::Local,
         _ => OcrProviderKind::Unknown,
     }
