@@ -30,7 +30,7 @@ function CredentialGate({ visible }) {
           </svg>
         </span>
         <strong id="credential-gate-title">请先完成 API 设置</strong>
-        <em id="credential-gate-help">在设置 → API 设置中填写 OCR Token 和 DeepSeek Key 后即可上传 PDF。</em>
+        <em id="credential-gate-help">在设置 → API 设置中保存 OCR 与翻译 Provider 后即可上传 PDF。</em>
         <button id="credential-gate-action" type="button" className="credential-gate-action" onClick={handleGateAction}>
           打开设置
         </button>

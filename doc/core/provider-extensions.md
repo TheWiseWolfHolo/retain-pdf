@@ -9,6 +9,8 @@
 - 内置支持 OpenAI Chat Completions、Anthropic Messages 和 Gemini Generate Content。
 - 支持声明式自定义 HTTP JSON/SSE 请求和响应提取。
 - 一个 Profile 提供默认模型和可选模型目录；每个任务可以选择具体模型。
+- DeepSeek 作为 OpenAI Chat Completions 兼容预设，与其他翻译 Profile 在同一面板管理。
+- OCR 支持多 Profile 共存；每个 OCR Profile 保存 Provider、Base URL、模型和凭据，并持久化当前启用项。
 - 任务记录可复现所用 Provider 配置，但不包含原始凭据。
 - 保留旧版 `translation.base_url/model/api_key` 请求作为上游兼容路径。
 

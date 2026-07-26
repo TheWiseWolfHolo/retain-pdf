@@ -202,6 +202,13 @@ export function mountWorkflowFeature({
     });
   }
 
+  async function updateDeveloperConfig(partial = {}) {
+    const next = { ...getDeveloperConfig(), ...partial };
+    setDeveloperConfig(next);
+    await saveDeveloperStoredConfig(next);
+    return next;
+  }
+
   function syncDeveloperDialogFromState() {
     const config = developerConfigWithDefaults();
     glossaryOptionsLoader.applyOptions(config.glossaryId);
@@ -455,6 +462,7 @@ export function mountWorkflowFeature({
     resetDeveloperDialog,
     saveDeveloperDialog,
     syncDeveloperDialogFromState,
+    updateDeveloperConfig,
     updateCredentialGate,
     updateDeveloperWorkflowFormState,
     workflowNeedsCredentials,

@@ -1,5 +1,5 @@
-// CredentialsDialog 家族(CredentialsDialog/OcrProviderPanels/DeepSeekPanel/
-// TaskOptionsPanel)的唯一装配面——把 composition.js 的 credentials 域
+// CredentialsDialog 家族(CredentialsWorkbench/ProviderProfilesPanel/
+// OcrProviderProfilesPanel/TaskOptionsPanel)的唯一装配面——把 composition.js 的 credentials 域
 // (services.credentials:{feature, view, dialogStore})折成一个 hook,组件
 // 只订阅需要的切片,不各自重复 useStoreSnapshot/useDialogState 样板。
 //

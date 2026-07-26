@@ -4,11 +4,14 @@
 
 ## 设置
 
-在“设置 -> API 设置 -> OCR”中选择“自定义 OCR”，填写：
+在“设置 -> API 设置 -> OCR Provider Profiles”中新建 Profile，选择“自定义 OCR”，填写：
 
 - Base URL：服务根地址、以 `/v1` 结尾的地址，或完整 `/v1/ocr` 地址。
 - OCR API Key：作为 Bearer Token 发送。
 - OCR 模型：例如 `mistral-ocr-latest`。
+
+点击“保存并启用”后，Profile 会持久化保存。可以同时保存多套 PaddleOCR 和
+自定义 OCR Profile，并通过“当前 OCR Profile”切换任务实际使用的配置。
 
 ## 请求契约
 

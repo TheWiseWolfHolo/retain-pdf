@@ -13,8 +13,7 @@
 import { Tabs as TabsPrimitive } from "radix-ui";
 import { CREDENTIAL_DOM_IDS } from "./credentials-dom-ids.js";
 import { useCredentialsController } from "./useCredentialsController.js";
-import { OcrProviderPanels } from "./OcrProviderPanels.jsx";
-import { DeepSeekPanel } from "./DeepSeekPanel.jsx";
+import { OcrProviderProfilesPanel } from "./OcrProviderProfilesPanel.jsx";
 import { ProviderProfilesPanel } from "./ProviderProfilesPanel.jsx";
 import { TaskOptionsPanel } from "./TaskOptionsPanel.jsx";
 import { Button as ButtonBase } from "../../../../components/Button.jsx";
@@ -76,13 +75,7 @@ export function CredentialsWorkbench() {
             data-credential-panel="api"
           >
             <div className="credential-card-grid credential-card-grid-compact credential-api-grid">
-              <section className="credential-card">
-                <div className="credential-card-head">
-                  <h3>OCR</h3>
-                </div>
-                <OcrProviderPanels />
-              </section>
-              <DeepSeekPanel />
+              <OcrProviderProfilesPanel />
               <ProviderProfilesPanel />
             </div>
           </TabsPrimitive.Content>
@@ -90,16 +83,18 @@ export function CredentialsWorkbench() {
               TaskOptionsPanel 自带 role=tabpanel，再包一层语义重复 */}
           <TaskOptionsPanel hidden={activeTab !== "task"} />
         </div>
-        <div className="actions credential-dialog-actions">
-          <span id={BROWSER_IDS.status} className={statusClasses}>{statusContent}</span>
-          <Button
-            id={BROWSER_IDS.saveButton}
-            className="app-button"
-            onClick={() => handlers?.save?.()}
-          >
-            {setupMode ? "保存并启动" : "保存"}
-          </Button>
-        </div>
+        {activeTab === "task" || setupMode ? (
+          <div className="actions credential-dialog-actions">
+            <span id={BROWSER_IDS.status} className={statusClasses}>{statusContent}</span>
+            <Button
+              id={BROWSER_IDS.saveButton}
+              className="app-button"
+              onClick={() => handlers?.save?.()}
+            >
+              {setupMode ? "保存并启动" : "保存任务选项"}
+            </Button>
+          </div>
+        ) : null}
       </div>
     </TabsPrimitive.Root>
   );

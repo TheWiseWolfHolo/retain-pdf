@@ -42,6 +42,7 @@ export type WorkflowFeature = {
   resetDeveloperDialog: () => void;
   saveDeveloperDialog: () => unknown;
   syncDeveloperDialogFromState: () => void;
+  updateDeveloperConfig: (partial?: Record<string, unknown>) => Promise<unknown>;
   updateCredentialGate: (options?: unknown) => void;
   updateDeveloperWorkflowFormState: () => void;
   workflowNeedsCredentials: (workflow?: string) => boolean;
