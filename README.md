@@ -13,6 +13,21 @@ RetainPDF 从一开始就是要解决各类 PDF 的保留排版翻译问题，�
 
 此外本项目是前后端分离、OCR、翻译、排版与交付打通的全栈项目，整体结构尽量解耦，既能直接使用，也方便后续开发者继续扩展、替换模块和二次开发。
 
+> 本仓库是基于上游 RetainPDF 持续同步的增强版。目前维护和发布的成品只面向 Windows。
+
+## 本 Fork 增强
+
+- 显式翻译 Provider Profile：支持 OpenAI Chat Completions、Anthropic Messages、Gemini Generate Content 和声明式自定义 JSON 请求格式。
+- 每个翻译 Provider 可独立配置名称、Base URL、API Key、默认模型、目标语言与请求速率限制。
+- 显式自定义 OCR：兼容 Mistral OCR / LiteLLM 的 `POST /v1/ocr` 请求格式。
+- 自定义 OCR 可配置 Base URL、API Key 和模型；请求使用 Bearer Auth 与 multipart `model` + `file`。
+- 保留上游原有 OCR、翻译、渲染、图书馆和任务系统，并把 Fork 差异集中在 Provider Adapter 边界。
+
+相关设计和接口说明：
+
+- [Provider 扩展设计](doc/core/provider-extensions.md)
+- [自定义 /v1/ocr 使用说明](doc/api/03-OCR/06-custom-v1-ocr.md)
+
 
 简单对比：
 
@@ -61,13 +76,11 @@ RetainPDF 从一开始就是要解决各类 PDF 的保留排版翻译问题，�
 
 ## 快速开始
 
-如果你只是想直接使用，先去 [GitHub Releases](https://github.com/wxyhgk/retain-pdf/releases) 下载对应平台的发布包：
+当前只发布 Windows 桌面版。前往 [TheWiseWolfHolo/retain-pdf Releases](https://github.com/TheWiseWolfHolo/retain-pdf/releases/latest)，下载：
 
-- Windows：优先下载 `Setup.exe`
-- macOS：下载 `.dmg`
-- Linux：下载 `.deb`
+- `RetainPDF-Windows-<版本>-Setup.exe`
 
-如果你想给局域网、团队或多台设备一起用，优先选 Docker 部署。
+当前稳定增强版为 [v4.2.1](https://github.com/TheWiseWolfHolo/retain-pdf/releases/tag/v4.2.1)。
 
 ### Windows 桌面端
 
@@ -75,72 +88,14 @@ RetainPDF 从一开始就是要解决各类 PDF 的保留排版翻译问题，�
   <img src="resources/brand/RetainPDF-desktop.png" alt="RetainPDF Windows 桌面端" width="860" />
 </p>
 
-### macOS 提示
+首次使用时，在“设置 -> API 设置”中：
 
-由于当前没有 Apple 开发者账号，macOS 版本第一次打开时可能会提示应用“已损坏”。这不是文件真的损坏，而是系统的签名校验导致的。把应用拖到 `/Applications` 后，执行：
+1. 选择并配置 OCR Provider。使用自定义接口时选择“自定义 OCR”，填写 Base URL、API Key 和模型。
+2. 创建或选择翻译 Provider Profile。
+3. 在“任务选项”中选择翻译模型、目标语言和请求速率限制。
+4. 上传 PDF 并开始任务。
 
-```bash
-sudo xattr -r -d com.apple.quarantine /Applications/RetainPDF.app
-```
-
-然后再重新打开应用即可。
-
-### Docker 部署
-
-当前仓库提供了 Docker 交付目录：
-
-- [docker/delivery/README.md](docker/delivery/README.md)
-- [docker/delivery/docker-compose.yml](docker/delivery/docker-compose.yml)
-
-基本步骤：
-
-```bash
-git clone https://github.com/wxyhgk/retain-pdf.git
-cd retain-pdf/docker/delivery
-docker compose up -d
-```
-
-启动后默认访问：
-
-```text
-http://127.0.0.1:40001
-```
-
-默认端口：
-
-- `40001`：前端页面
-- `41000`：Rust API
-- `42000`：multipart 异步提交接口
-
-### Docker 更新
-
-如果只是更新到最新镜像版本：
-
-```bash
-cd retain-pdf/docker/delivery
-docker compose pull
-docker compose up -d
-```
-
-如果你要切换到指定镜像版本，也可以这样：
-
-```bash
-cd retain-pdf/docker/delivery
-APP_IMAGE=wxyhgk/retainpdf-app:<version> \
-WEB_IMAGE=wxyhgk/retainpdf-web:<version> \
-docker compose up -d
-```
-
-更新后建议执行一次状态检查：
-
-```bash
-docker compose ps
-```
-
-当前镜像地址：
-
-- [wxyhgk/retainpdf-app](https://hub.docker.com/r/wxyhgk/retainpdf-app)
-- [wxyhgk/retainpdf-web](https://hub.docker.com/r/wxyhgk/retainpdf-web)
+自定义 OCR 首版只接受本地上传 PDF。由于 `/v1/ocr` 的通用响应只提供每页 Markdown、不保证提供文本坐标，RetainPDF 会把每页 Markdown 映射为整页文本块后进入现有翻译和渲染链。
 
 ## 交流群
 
@@ -199,7 +154,7 @@ RetainPDF 目前已经形成完整产品链路：
 - Rust API 负责上传、任务、图书馆、事件、产物、断点恢复和 Provider 调度。
 - Python pipeline 负责 OCR 归一化、翻译、诊断、渲染和 PDF 处理。
 - `frontend/` 是当前生产入口，已是三页 React SPA；`frontend-react/` 是另一条独立技术栈的迁移区。
-- Docker 和桌面端是当前主要交付形态。
+- 本 Fork 当前只维护 Windows 桌面端发布包。
 - API、数据库、artifact、reader、glossary 和 stage spec 已有主线文档维护。
 
 当前开发优先级以主线契约为准，主要集中在：
@@ -207,7 +162,7 @@ RetainPDF 目前已经形成完整产品链路：
 - 前端图书馆、reader、任务进度和术语表体验。
 - Rust API 的边界收口、数据库持久化和 artifact 管理。
 - Python 翻译一致性、公式保护、渲染稳定性和诊断能力。
-- Docker、桌面端、CI 和测试样本的可复现交付。
+- Windows 桌面端、CI 和测试样本的可复现交付。
 - 文档与真实 API / 配置 / 目录结构保持同步。
 
 ### 欢迎一起参与
