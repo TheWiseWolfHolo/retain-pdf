@@ -13,6 +13,10 @@ pub use super::library::{
     ListDocumentsQuery, ListFavoritesQuery, MessageRecord, PatchCollectionInput,
     PatchConversationInput, PatchDocumentInput, PatchFavoriteInput, SearchQuery, SearchResultView,
 };
+pub use super::provider_profile::{
+    ProviderCapabilities, ProviderModelListView, ProviderProfileListView, ProviderProfileProbeView,
+    ProviderProfileUpsertInput, ProviderProfileView,
+};
 pub use super::public_contract::{public_request_payload, PublicResolvedJobSpec};
 pub use super::redaction::{
     redact_json_value, redact_optional_text, redact_text, sensitive_values,
@@ -22,10 +26,9 @@ pub use super::view::{
     build_job_links_with_workflow, summarize_list_invocation, to_absolute_url, upload_to_response,
     ArtifactDisplayItemView, ArtifactDownloadQuery, ArtifactLinksView, BookSummaryView,
     DocumentDeleteResultView, GlossaryUsageSummaryView, InvocationSummaryView, JobActionsView,
-    JobArtifactManifestView,
-    JobContractsView, JobDetailView, JobDiagnosticsView, JobEventListView, JobEventProgressView,
-    JobEventRawView, JobEventRecord, JobFailureDiagnosticView, JobLinksView, JobListItemView,
-    JobListView, JobProgressView, JobResumePlanView, JobStageContractArtifactView,
+    JobArtifactManifestView, JobContractsView, JobDetailView, JobDiagnosticsView, JobEventListView,
+    JobEventProgressView, JobEventRawView, JobEventRecord, JobFailureDiagnosticView, JobLinksView,
+    JobListItemView, JobListView, JobProgressView, JobResumePlanView, JobStageContractArtifactView,
     JobStageContractView, JobStageRuntimeView, JobStageSnapshotView, JobStageStateView,
     JobStagesView, JobSubmissionView, JobTimestampsView, LibraryBatchDeleteInput,
     LibraryBatchDeleteResultView, LibraryBookDetailView, LibraryBookListItemView,

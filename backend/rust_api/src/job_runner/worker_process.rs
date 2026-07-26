@@ -17,6 +17,7 @@ use crate::ocr_provider::{
     configured_provider_credential_env, is_configured_command_provider, provider_token,
     provider_token_env_name, require_supported_provider,
 };
+use crate::services::provider_profiles::read_provider_secret;
 
 pub(super) fn spawn_worker_process(
     config: &WorkerProcessRuntimeConfig<'_>,
@@ -32,7 +33,7 @@ pub(super) fn spawn_worker_process(
         .current_dir(config.project_root)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
-    apply_job_credentials(&mut command, job);
+    apply_job_credentials(&mut command, job, config.data_root);
     configure_child_process(&mut command);
 
     let program = job.command.first().cloned().unwrap_or_default();
@@ -41,13 +42,54 @@ pub(super) fn spawn_worker_process(
         .with_context(|| format!("failed to spawn python worker: {program}"))
 }
 
-fn apply_job_credentials(command: &mut Command, job: &JobRuntimeState) {
-    if !job.request_payload.translation.api_key.trim().is_empty() {
+fn apply_job_credentials(
+    command: &mut Command,
+    job: &JobRuntimeState,
+    data_root: &std::path::Path,
+) {
+    let translation = &job.request_payload.translation;
+    if !translation.provider_profile_id.trim().is_empty() {
+        if let Ok(secret) = read_provider_secret(data_root, translation.provider_profile_id.trim())
+        {
+            command.env("RETAIN_TRANSLATION_API_KEY", secret);
+        }
+    } else if !translation.api_key.trim().is_empty() {
+        command.env("RETAIN_TRANSLATION_API_KEY", translation.api_key.trim());
+    }
+    if !translation.provider_adapter.trim().is_empty() {
         command.env(
-            "RETAIN_TRANSLATION_API_KEY",
-            job.request_payload.translation.api_key.trim(),
+            "RETAIN_TRANSLATION_PROVIDER_ADAPTER",
+            translation.provider_adapter.trim(),
         );
     }
+    if !translation.provider_profile_id.trim().is_empty() {
+        command.env(
+            "RETAIN_TRANSLATION_PROVIDER_PROFILE_ID",
+            translation.provider_profile_id.trim(),
+        );
+    }
+    if !translation.provider_request_format.is_null() {
+        if let Ok(payload) = serde_json::to_string(&translation.provider_request_format) {
+            command.env("RETAIN_TRANSLATION_REQUEST_FORMAT_JSON", payload);
+        }
+    }
+    if !translation.provider_capabilities.is_null() {
+        if let Ok(payload) = serde_json::to_string(&translation.provider_capabilities) {
+            command.env("RETAIN_TRANSLATION_PROVIDER_CAPABILITIES_JSON", payload);
+        }
+    }
+    command.env(
+        "RETAIN_TRANSLATION_TARGET_LANGUAGE",
+        translation.target_language.trim(),
+    );
+    command.env(
+        "RETAIN_TRANSLATION_RATE_LIMIT_QPS",
+        translation.rate_limit_qps.to_string(),
+    );
+    command.env(
+        "RETAIN_TRANSLATION_RATE_LIMIT_RPM",
+        translation.rate_limit_rpm.to_string(),
+    );
     if let Ok(provider_kind) = require_supported_provider(&job.request_payload.ocr.provider) {
         if is_configured_command_provider(&job.request_payload.ocr.provider) {
             apply_configured_provider_credential(command, job);

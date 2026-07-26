@@ -7,6 +7,10 @@ export interface WorkflowDeveloperConfig {
   mathMode?: string;
   model?: string;
   baseUrl?: string;
+  providerProfileId?: string;
+  targetLanguage?: string;
+  rateLimitQps?: number;
+  rateLimitRpm?: number;
   glossaryId?: string;
   workers?: number;
   batchSize?: number;
@@ -108,6 +112,10 @@ export function buildTranslationPayload({
     math_mode: developerConfig.mathMode,
     model: developerConfig.model,
     base_url: developerConfig.baseUrl,
+    provider_profile_id: developerConfig.providerProfileId || "",
+    target_language: developerConfig.targetLanguage || "zh-CN",
+    rate_limit_qps: developerConfig.rateLimitQps || 0,
+    rate_limit_rpm: developerConfig.rateLimitRpm || 0,
     api_key: modelApiKey || "",
     workers: developerConfig.workers,
     batch_size: developerConfig.batchSize,

@@ -13,6 +13,10 @@ export function syncCredentialDialogFields({
     apiKeyInput,
     modelBaseUrlInput,
     modelNameInput,
+    providerProfileIdInput,
+    targetLanguageSelect,
+    rateLimitQpsInput,
+    rateLimitRpmInput,
     mathModeSelect,
   } = elementsPort.elements();
 
@@ -29,6 +33,18 @@ export function syncCredentialDialogFields({
   }
   if (modelNameInput) {
     modelNameInput.value = taskOptions.model || "";
+  }
+  if (providerProfileIdInput) {
+    providerProfileIdInput.value = taskOptions.providerProfileId || taskOptions.provider_profile_id || "";
+  }
+  if (targetLanguageSelect) {
+    targetLanguageSelect.value = taskOptions.targetLanguage || taskOptions.target_language || "zh-CN";
+  }
+  if (rateLimitQpsInput) {
+    rateLimitQpsInput.value = `${taskOptions.rateLimitQps || taskOptions.rate_limit_qps || 0}`;
+  }
+  if (rateLimitRpmInput) {
+    rateLimitRpmInput.value = `${taskOptions.rateLimitRpm || taskOptions.rate_limit_rpm || 0}`;
   }
   if (mathModeSelect) {
     mathModeSelect.value = taskOptions.mathMode === "placeholder" ? "placeholder" : "direct_typst";

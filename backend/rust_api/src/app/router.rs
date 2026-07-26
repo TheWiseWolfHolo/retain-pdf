@@ -7,14 +7,15 @@ use tower_http::trace::TraceLayer;
 
 use crate::app::AppState;
 use crate::auth;
+use crate::routes::ai_proxy;
+use crate::routes::collections;
 use crate::routes::glossaries;
 use crate::routes::health;
 use crate::routes::jobs;
-use crate::routes::ai_proxy;
-use crate::routes::collections;
 use crate::routes::library;
 use crate::routes::library_data;
 use crate::routes::library_extras;
+use crate::routes::provider_profiles;
 use crate::routes::providers;
 use crate::routes::uploads;
 
@@ -81,10 +82,7 @@ pub fn build_app(state: AppState) -> Router {
             "/api/v1/glossaries/:glossary_id/export.csv",
             get(glossaries::export_glossary_csv_route),
         )
-        .route(
-            "/api/v1/documents",
-            get(library_data::list_documents_route),
-        )
+        .route("/api/v1/documents", get(library_data::list_documents_route))
         .route(
             "/api/v1/documents/:document_id",
             get(library_data::get_document_route)
@@ -282,6 +280,25 @@ pub fn build_app(state: AppState) -> Router {
         .route(
             "/api/v1/providers/deepseek/balance",
             post(providers::query_deepseek_balance),
+        )
+        .route(
+            "/api/v1/provider-profiles",
+            post(provider_profiles::create_provider_profile_route)
+                .get(provider_profiles::list_provider_profiles_route),
+        )
+        .route(
+            "/api/v1/provider-profiles/:profile_id",
+            get(provider_profiles::get_provider_profile_route)
+                .put(provider_profiles::update_provider_profile_route)
+                .delete(provider_profiles::delete_provider_profile_route),
+        )
+        .route(
+            "/api/v1/provider-profiles/:profile_id/test",
+            post(provider_profiles::probe_provider_profile_route),
+        )
+        .route(
+            "/api/v1/provider-profiles/:profile_id/models",
+            get(provider_profiles::list_provider_profile_models_route),
         )
         .route_layer(middleware::from_fn_with_state(
             state.clone(),

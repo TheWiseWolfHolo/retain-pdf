@@ -168,6 +168,10 @@ export type CredentialsElementsRef = {
   apiKeyInput: HTMLInputElement | null;
   modelBaseUrlInput: HTMLInputElement | null;
   modelNameInput: HTMLInputElement | null;
+  providerProfileIdInput: HTMLSelectElement | null;
+  targetLanguageSelect: HTMLSelectElement | null;
+  rateLimitQpsInput: HTMLInputElement | null;
+  rateLimitRpmInput: HTMLInputElement | null;
   mathModeSelect: HTMLSelectElement | null;
   tokenInputs: Record<string, HTMLInputElement | null | undefined>;
 };

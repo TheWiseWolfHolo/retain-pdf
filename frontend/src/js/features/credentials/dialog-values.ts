@@ -6,6 +6,10 @@ export interface CredentialDialogValues {
   modelApiKey: string;
   modelBaseUrl: string;
   modelName: string;
+  providerProfileId: string;
+  targetLanguage: string;
+  rateLimitQps: number;
+  rateLimitRpm: number;
   mathMode: string;
 }
 
@@ -14,6 +18,10 @@ export interface CredentialDialogElementsLike {
   apiKeyInput?: { value?: string } | null;
   modelBaseUrlInput?: { value?: string } | null;
   modelNameInput?: { value?: string } | null;
+  providerProfileIdInput?: { value?: string } | null;
+  targetLanguageSelect?: { value?: string } | null;
+  rateLimitQpsInput?: { value?: string } | null;
+  rateLimitRpmInput?: { value?: string } | null;
   mathModeSelect?: { value?: string } | null;
 }
 
@@ -30,7 +38,11 @@ export interface BuildBrowserCredentialConfigOptions {
 }
 
 export interface BuildTaskOptionsFromDialogValuesOptions {
-  values: Pick<CredentialDialogValues, "modelName" | "modelBaseUrl" | "mathMode">;
+  values: Pick<
+    CredentialDialogValues,
+    "modelName" | "modelBaseUrl" | "providerProfileId" | "targetLanguage"
+      | "rateLimitQps" | "rateLimitRpm" | "mathMode"
+  >;
   defaultModelBaseUrl?: () => string;
 }
 
@@ -42,6 +54,10 @@ export function readCredentialDialogValues({
     apiKeyInput,
     modelBaseUrlInput,
     modelNameInput,
+    providerProfileIdInput,
+    targetLanguageSelect,
+    rateLimitQpsInput,
+    rateLimitRpmInput,
     mathModeSelect,
   } = elementsPort.elements();
   return {
@@ -49,6 +65,10 @@ export function readCredentialDialogValues({
     modelApiKey: apiKeyInput?.value?.trim() || "",
     modelBaseUrl: modelBaseUrlInput?.value?.trim() || "",
     modelName: modelNameInput?.value?.trim() || "",
+    providerProfileId: providerProfileIdInput?.value?.trim() || "",
+    targetLanguage: targetLanguageSelect?.value?.trim() || "zh-CN",
+    rateLimitQps: Math.max(0, Number(rateLimitQpsInput?.value || 0) || 0),
+    rateLimitRpm: Math.max(0, Number(rateLimitRpmInput?.value || 0) || 0),
     mathMode: mathModeSelect?.value || "direct_typst",
   };
 }
@@ -73,6 +93,10 @@ export function buildTaskOptionsFromDialogValues({
   return {
     model: values.modelName,
     baseUrl: values.modelBaseUrl || defaultModelBaseUrl?.() || "",
+    providerProfileId: values.providerProfileId,
+    targetLanguage: values.targetLanguage,
+    rateLimitQps: values.rateLimitQps,
+    rateLimitRpm: values.rateLimitRpm,
     mathMode: values.mathMode,
     translateTitles: true,
   };

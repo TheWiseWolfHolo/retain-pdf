@@ -8,6 +8,7 @@ from services.translation.services.policy import TranslationPolicyConfig
 from services.translation.services.terms import AbbreviationEntry
 from services.translation.services.terms import GlossaryEntry
 from services.translation.services.terms import normalize_glossary_entries
+from services.translation.llm.target_language import target_language_profile
 
 
 def build_translation_context(
@@ -62,6 +63,7 @@ def build_translation_context_from_policy(
     glossary_mode: str = "matched",
     memory_mode: str = "matched",
 ) -> TranslationControlContext:
+    target_language = target_language_profile()
     extra_guidance_parts: list[str] = []
     if extra_guidance.strip():
         extra_guidance_parts.append(extra_guidance.strip())
@@ -74,9 +76,13 @@ def build_translation_context_from_policy(
         )
     return build_translation_context(
         mode=policy_config.mode,
+        target_lang=target_language["code"],
+        target_language_name=target_language["label"],
         domain_guidance=policy_config.document_domain_guidance,
         rule_guidance=policy_config.rule_guidance,
-        extra_guidance="\n\n".join(extra_guidance_parts).strip(),
+        extra_guidance="\n\n".join(
+            [target_language["style_hint"], *extra_guidance_parts]
+        ).strip(),
         request_label=request_label,
         glossary_entries=normalize_glossary_entries(glossary_entries),
         abbreviation_entries=abbreviation_entries,

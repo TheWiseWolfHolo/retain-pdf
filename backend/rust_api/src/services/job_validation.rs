@@ -20,6 +20,11 @@ pub fn validate_provider_credentials(input: &CreateJobInput) -> Result<(), AppEr
 }
 
 pub fn validate_translation_credentials(input: &CreateJobInput) -> Result<(), AppError> {
+    if input.translation.rate_limit_qps < 0 || input.translation.rate_limit_rpm < 0 {
+        return Err(AppError::bad_request(
+            "translation rate limits must be greater than or equal to 0",
+        ));
+    }
     let base_url = input.translation.base_url.trim();
     if base_url.is_empty() {
         return Err(AppError::bad_request("base_url is required"));
@@ -31,7 +36,7 @@ pub fn validate_translation_credentials(input: &CreateJobInput) -> Result<(), Ap
     }
 
     let api_key = input.translation.api_key.trim();
-    if api_key.is_empty() {
+    if api_key.is_empty() && input.translation.provider_profile_id.trim().is_empty() {
         return Err(AppError::bad_request("api_key is required"));
     }
     if looks_like_url(api_key) {

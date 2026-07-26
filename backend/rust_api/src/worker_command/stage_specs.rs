@@ -88,7 +88,9 @@ pub(crate) fn write_translate_stage_spec(
 ) -> Result<PathBuf> {
     ensure_specs_dir(job_paths)?;
     let spec_path = translate_stage_spec_path(job_paths);
-    let credential_ref = if request.translation.api_key.trim().is_empty() {
+    let credential_ref = if request.translation.api_key.trim().is_empty()
+        && request.translation.provider_profile_id.trim().is_empty()
+    {
         String::new()
     } else {
         format!("env:{TRANSLATION_API_KEY_ENV_NAME}")
@@ -128,6 +130,13 @@ pub(crate) fn write_translate_stage_spec(
             "memory_mode": request.translation.memory_mode,
             "model": request.translation.model,
             "base_url": request.translation.base_url,
+            "provider_profile_id": request.translation.provider_profile_id,
+            "provider_adapter": request.translation.provider_adapter,
+            "provider_request_format": request.translation.provider_request_format,
+            "provider_capabilities": request.translation.provider_capabilities,
+            "target_language": request.translation.target_language,
+            "rate_limit_qps": request.translation.rate_limit_qps,
+            "rate_limit_rpm": request.translation.rate_limit_rpm,
             "credential_ref": credential_ref,
             "render_prewarm_output_pdf_path": job_paths.rendered_dir.join(
                 if request.render.translated_pdf_name.trim().is_empty() {
@@ -155,7 +164,9 @@ pub(crate) fn write_render_stage_spec(
 ) -> Result<PathBuf> {
     ensure_specs_dir(job_paths)?;
     let spec_path = render_stage_spec_path(job_paths);
-    let credential_ref = if request.translation.api_key.trim().is_empty() {
+    let credential_ref = if request.translation.api_key.trim().is_empty()
+        && request.translation.provider_profile_id.trim().is_empty()
+    {
         String::new()
     } else {
         format!("env:{TRANSLATION_API_KEY_ENV_NAME}")
@@ -191,6 +202,13 @@ pub(crate) fn write_render_stage_spec(
             "source_cleanup_strategy": request.render.source_cleanup_strategy,
             "model": request.translation.model,
             "base_url": request.translation.base_url,
+            "provider_profile_id": request.translation.provider_profile_id,
+            "provider_adapter": request.translation.provider_adapter,
+            "provider_request_format": request.translation.provider_request_format,
+            "provider_capabilities": request.translation.provider_capabilities,
+            "target_language": request.translation.target_language,
+            "rate_limit_qps": request.translation.rate_limit_qps,
+            "rate_limit_rpm": request.translation.rate_limit_rpm,
             "credential_ref": credential_ref,
         },
     });
@@ -211,7 +229,9 @@ pub(crate) fn write_provider_stage_spec(
         .context("resolve OCR provider for provider stage spec")?;
     let provider_credential_ref =
         provider_credential_ref_for_stage(&request.ocr.provider, &provider_kind, &request.ocr)?;
-    let translation_credential_ref = if request.translation.api_key.trim().is_empty() {
+    let translation_credential_ref = if request.translation.api_key.trim().is_empty()
+        && request.translation.provider_profile_id.trim().is_empty()
+    {
         String::new()
     } else {
         format!("env:{TRANSLATION_API_KEY_ENV_NAME}")
@@ -269,6 +289,13 @@ pub(crate) fn write_provider_stage_spec(
             "memory_mode": request.translation.memory_mode,
             "model": request.translation.model,
             "base_url": request.translation.base_url,
+            "provider_profile_id": request.translation.provider_profile_id,
+            "provider_adapter": request.translation.provider_adapter,
+            "provider_request_format": request.translation.provider_request_format,
+            "provider_capabilities": request.translation.provider_capabilities,
+            "target_language": request.translation.target_language,
+            "rate_limit_qps": request.translation.rate_limit_qps,
+            "rate_limit_rpm": request.translation.rate_limit_rpm,
             "credential_ref": translation_credential_ref,
         },
         "render": {

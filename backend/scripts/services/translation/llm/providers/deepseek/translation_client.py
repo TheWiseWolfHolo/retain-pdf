@@ -6,7 +6,6 @@ import re
 from services.translation.artifacts import TranslationDiagnosticsCollector
 from services.translation.llm.providers.deepseek.client import DEFAULT_BASE_URL
 from services.translation.llm.providers.deepseek.client import DEFAULT_MODEL
-from services.translation.llm.providers.deepseek.client import request_chat_content
 from services.translation.llm.shared.prompt_building import build_messages
 from services.translation.llm.shared.prompt_building import build_single_item_fallback_messages
 from services.translation.llm.shared.prompt_building import build_group_member_messages
@@ -30,6 +29,13 @@ TAGGED_ITEM_END_RE = re.compile(r"<<<END>>>")
 # 模型偶尔会在输出末尾损坏闭合标签(实测过 <<<END>>,少一个 >)。内容
 # 完好只是标签残缺时不能丢条目,按残缺形态宽容剥离。
 TAGGED_DAMAGED_END_RE = re.compile(r"\s*<{1,3}END>{0,4}\s*$")
+
+
+def request_chat_content(*args, **kwargs):
+    """Resolve the active per-worker provider without duplicating translation logic."""
+    from services.translation.llm.shared.provider_runtime import request_chat_content as active_request
+
+    return active_request(*args, **kwargs)
 
 
 def parse_translation_payload(content: str) -> dict[str, dict[str, str]]:

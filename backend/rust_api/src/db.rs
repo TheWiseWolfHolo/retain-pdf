@@ -23,6 +23,8 @@ mod glossaries;
 mod job_writes;
 #[path = "db/jobs.rs"]
 mod jobs;
+#[path = "db/provider_profiles.rs"]
+mod provider_profiles;
 #[path = "db/retention.rs"]
 mod retention;
 #[path = "db/rows.rs"]
@@ -201,6 +203,20 @@ impl Db {
                 updated_at TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_glossaries_updated_at ON glossaries(updated_at DESC);
+            CREATE TABLE IF NOT EXISTS provider_profiles (
+                profile_id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                adapter TEXT NOT NULL,
+                base_url TEXT NOT NULL,
+                default_model TEXT NOT NULL DEFAULT '',
+                credential_ref TEXT NOT NULL,
+                request_format_json TEXT NOT NULL DEFAULT '{}',
+                capability_overrides_json TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_provider_profiles_updated_at
+                ON provider_profiles(updated_at DESC);
             "#,
         )?;
         // 图书馆表走版本化迁移,随 schema 保证存在(不依赖 init 被调用)

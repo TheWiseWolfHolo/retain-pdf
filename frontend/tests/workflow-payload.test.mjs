@@ -84,6 +84,25 @@ test("buildTranslationPayload falls back to developer glossary id", () => {
   assert.equal(payload.skip_title_translation, true);
 });
 
+test("buildTranslationPayload carries explicit provider, language, and request limits", () => {
+  const payload = buildTranslationPayload({
+    developerConfig: developerConfig({
+      providerProfileId: "provider-company",
+      targetLanguage: "ja",
+      rateLimitQps: 3,
+      rateLimitRpm: 120,
+    }),
+    modelApiKey: "",
+    constants,
+  });
+
+  assert.equal(payload.provider_profile_id, "provider-company");
+  assert.equal(payload.target_language, "ja");
+  assert.equal(payload.rate_limit_qps, 3);
+  assert.equal(payload.rate_limit_rpm, 120);
+  assert.equal(payload.api_key, "");
+});
+
 test("buildOcrPayload maps provider token field and paddle api url", () => {
   const payload = buildOcrPayload({
     pageRanges: "1-3",

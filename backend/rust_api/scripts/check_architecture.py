@@ -91,6 +91,9 @@ ROUTE_SERVICE_IMPORT_ALLOWLIST = {
     Path("src/routes/providers.rs"): (
         "crate::services::provider_probe::",
     ),
+    Path("src/routes/provider_profiles.rs"): (
+        "crate::services::provider_profiles::",
+    ),
 }
 
 ARTIFACT_BOUNDARY_FILES = {

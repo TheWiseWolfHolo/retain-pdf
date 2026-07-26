@@ -10,5 +10,6 @@ pub mod jobs;
 pub mod library;
 pub mod library_api;
 pub mod provider_probe;
+pub mod provider_profiles;
 pub mod runtime_gateway;
 pub mod upload_api;

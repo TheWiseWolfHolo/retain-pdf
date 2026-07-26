@@ -30,6 +30,19 @@ export {
 export { openDesktopOutputDirectory } from "../../../js/config/desktop-persistence.js";
 export { DEFAULT_MODEL_VERSION } from "../../../js/config/model-constants.js";
 export {
+  createProviderProfile,
+  deleteProviderProfile,
+  listProviderModels,
+  listProviderProfiles,
+  testProviderProfile,
+  updateProviderProfile,
+} from "../../../js/api/provider-profiles.js";
+export type {
+  ProviderAdapter,
+  ProviderProfile,
+  ProviderProfileInput,
+} from "../../../js/api/provider-profiles.js";
+export {
   OCR_PROVIDER_DEFINITIONS,
   TRANSLATION_PROVIDER_DEFINITION,
 } from "../../../js/config/providers.js";

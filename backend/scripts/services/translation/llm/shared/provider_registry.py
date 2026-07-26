@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
+from services.translation.llm.providers.anthropic import client as anthropic_client
+from services.translation.llm.providers.custom_json import client as custom_json_client
 from services.translation.llm.providers.deepseek.client import DEFAULT_API_KEY_ENV as DEEPSEEK_DEFAULT_API_KEY_ENV
 from services.translation.llm.providers.deepseek.client import DEFAULT_BASE_URL as DEEPSEEK_DEFAULT_BASE_URL
 from services.translation.llm.providers.deepseek.client import DEFAULT_MODEL as DEEPSEEK_DEFAULT_MODEL
@@ -23,6 +26,7 @@ from services.translation.llm.providers.deepseek.translation_client import (
 )
 from services.translation.llm.providers.deepseek.translation_client import translate_single_item_tagged_text as deepseek_translate_single_item_tagged_text
 from services.translation.llm.providers.deepseek.translation_client import translate_single_item_with_decision as deepseek_translate_single_item_with_decision
+from services.translation.llm.providers.gemini import client as gemini_client
 from services.translation.llm.shared.provider_protocol import ChatCompletionsUrlFn
 from services.translation.llm.shared.provider_protocol import GetApiKeyFn
 from services.translation.llm.shared.provider_protocol import HeadersBuilderFn
@@ -84,13 +88,97 @@ DEEPSEEK_RUNTIME = TranslationProviderRuntime(
     translate_single_item_with_decision=deepseek_translate_single_item_with_decision,
 )
 
+OPENAI_RUNTIME = TranslationProviderRuntime(
+    provider_id="openai_chat_completions",
+    provider_family="openai_compatible",
+    default_api_key_env=DEEPSEEK_DEFAULT_API_KEY_ENV,
+    default_model=DEEPSEEK_DEFAULT_MODEL,
+    default_base_url=DEEPSEEK_DEFAULT_BASE_URL,
+    capabilities=TranslationProviderCapabilities(),
+    build_headers=deepseek_build_headers,
+    chat_completions_url=deepseek_chat_completions_url,
+    get_api_key=deepseek_get_api_key,
+    get_session=deepseek_get_session,
+    is_transport_error=deepseek_is_transport_error,
+    normalize_base_url=deepseek_normalize_base_url,
+    request_chat_content=deepseek_request_chat_content,
+    parse_translation_payload=deepseek_parse_translation_payload,
+    translate_batch_once=deepseek_translate_batch_once,
+    translate_single_item_plain_text=deepseek_translate_single_item_plain_text,
+    translate_single_item_plain_text_unstructured=deepseek_translate_single_item_plain_text_unstructured,
+    translate_continuation_group_members=deepseek_translate_continuation_group_members,
+    translate_single_item_tagged_text=deepseek_translate_single_item_tagged_text,
+    translate_single_item_with_decision=deepseek_translate_single_item_with_decision,
+)
+
+
+def _runtime_from_client(*, provider_id: str, provider_family: str, client) -> TranslationProviderRuntime:
+    return TranslationProviderRuntime(
+        provider_id=provider_id,
+        provider_family=provider_family,
+        default_api_key_env=client.DEFAULT_API_KEY_ENV,
+        default_model=client.DEFAULT_MODEL,
+        default_base_url=client.DEFAULT_BASE_URL,
+        capabilities=TranslationProviderCapabilities(),
+        build_headers=client.build_headers,
+        chat_completions_url=client.chat_completions_url,
+        get_api_key=client.get_api_key,
+        get_session=client.get_session,
+        is_transport_error=client.is_transport_error,
+        normalize_base_url=client.normalize_base_url,
+        request_chat_content=client.request_chat_content,
+        parse_translation_payload=deepseek_parse_translation_payload,
+        translate_batch_once=deepseek_translate_batch_once,
+        translate_single_item_plain_text=deepseek_translate_single_item_plain_text,
+        translate_single_item_plain_text_unstructured=deepseek_translate_single_item_plain_text_unstructured,
+        translate_continuation_group_members=deepseek_translate_continuation_group_members,
+        translate_single_item_tagged_text=deepseek_translate_single_item_tagged_text,
+        translate_single_item_with_decision=deepseek_translate_single_item_with_decision,
+    )
+
+
+ANTHROPIC_RUNTIME = _runtime_from_client(
+    provider_id="anthropic_messages",
+    provider_family="anthropic",
+    client=anthropic_client,
+)
+GEMINI_RUNTIME = _runtime_from_client(
+    provider_id="gemini_generate_content",
+    provider_family="gemini",
+    client=gemini_client,
+)
+CUSTOM_JSON_RUNTIME = _runtime_from_client(
+    provider_id="custom_json",
+    provider_family="custom",
+    client=custom_json_client,
+)
+
+_RUNTIMES: dict[str, TranslationProviderRuntime] = {
+    "deepseek": DEEPSEEK_RUNTIME,
+    "openai_chat_completions": OPENAI_RUNTIME,
+    "anthropic_messages": ANTHROPIC_RUNTIME,
+    "gemini_generate_content": GEMINI_RUNTIME,
+    "custom_json": CUSTOM_JSON_RUNTIME,
+}
+
 
 def resolve_active_provider_runtime() -> TranslationProviderRuntimeProtocol:
-    return DEEPSEEK_RUNTIME
+    provider_id = os.environ.get("RETAIN_TRANSLATION_PROVIDER_ADAPTER", "deepseek").strip().lower()
+    try:
+        return _RUNTIMES[provider_id]
+    except KeyError as exc:
+        raise RuntimeError(
+            f"Unsupported translation provider adapter: {provider_id}. "
+            f"Expected one of: {', '.join(sorted(_RUNTIMES))}"
+        ) from exc
 
 
 __all__ = [
     "DEEPSEEK_RUNTIME",
+    "OPENAI_RUNTIME",
+    "ANTHROPIC_RUNTIME",
+    "GEMINI_RUNTIME",
+    "CUSTOM_JSON_RUNTIME",
     "TranslationProviderRuntime",
     "TranslationProviderCapabilities",
     "TranslationProviderRuntimeProtocol",

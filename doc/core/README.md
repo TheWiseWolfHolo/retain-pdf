@@ -10,6 +10,7 @@
 - [OCR / 文档解析 Provider](./paddle_ocr_api/README.md)
 - [Python 后端](./python/README.md)
 - [前端文档](./frontend/README.md)
+- [翻译 Provider 扩展](./provider-extensions.md)
 
 ## 读法
 

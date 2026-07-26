@@ -16,6 +16,10 @@ export interface BrowserStoredConfig {
 export interface DeveloperStoredConfig {
   model?: string;
   baseUrl?: string;
+  providerProfileId?: string;
+  targetLanguage?: string;
+  rateLimitQps?: number;
+  rateLimitRpm?: number;
   [key: string]: unknown;
 }
 

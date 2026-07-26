@@ -41,6 +41,10 @@ export interface CredentialDialogElements {
   apiKeyInput?: HTMLInputElement | null;
   modelBaseUrlInput?: HTMLInputElement | null;
   modelNameInput?: HTMLInputElement | null;
+  providerProfileIdInput?: HTMLSelectElement | null;
+  targetLanguageSelect?: HTMLSelectElement | null;
+  rateLimitQpsInput?: HTMLInputElement | null;
+  rateLimitRpmInput?: HTMLInputElement | null;
   mathModeSelect?: HTMLSelectElement | null;
 }
 
@@ -221,8 +225,8 @@ export function mountBrowserCredentialsFeature({
     viewPort.syncOcrProviderControls(activeProvider);
   }
 
-  function readCurrentCredentials() {
-    return credentialsStatePort.getCredentials?.() || readHiddenCredentialInputs();
+  function readCurrentCredentials(): CredentialsFields {
+    return (credentialsStatePort.getCredentials?.() || readHiddenCredentialInputs()) as CredentialsFields;
   }
 
   function syncBrowserDialogFromCredentialState() {
@@ -241,9 +245,13 @@ export function mountBrowserCredentialsFeature({
   }
 
   function hasBrowserCredentials() {
-    return Boolean(credentialsStatePort.hasComplete?.({
-      defaultPaddleToken,
-    }));
+    const taskOptions = (getTaskOptions?.() || {}) as Record<string, unknown>;
+    const credentials = readCurrentCredentials() as Partial<CredentialsFields>;
+    return Boolean(
+      credentialsStatePort.hasComplete?.({ defaultPaddleToken })
+      || (`${taskOptions.providerProfileId || taskOptions.provider_profile_id || ""}`.trim()
+        && (credentials.paddleToken || defaultPaddleToken())),
+    );
   }
 
   function openBrowserCredentialsDialog(options: OpenBrowserCredentialsDialogOptions = {}) {
@@ -386,14 +394,15 @@ export function mountBrowserCredentialsFeature({
     };
     const ocrToken = ocrTokenFromDialogValues(values);
     const modelApiKey = `${values.modelApiKey || ""}`.trim();
-    if (!ocrToken || !modelApiKey) {
+    const providerProfileId = `${values.providerProfileId || ""}`.trim();
+    if (!ocrToken || (!modelApiKey && !providerProfileId)) {
       if (!ocrToken) {
         viewPort.setOcrValidationMessage(definition.validationMissingMessage, "error", definition.id);
       }
-      if (!modelApiKey) {
+      if (!modelApiKey && !providerProfileId) {
         viewPort.setDeepSeekValidationMessage(TRANSLATION_PROVIDER_DEFINITION.validationMissingMessage, "error");
       }
-      viewPort.setDialogStatus("请填写 OCR Token 与模型 API Key 后再保存", "error");
+      viewPort.setDialogStatus("请填写 OCR Token，并选择 Provider 或填写模型 API Key", "error");
       return;
     }
 

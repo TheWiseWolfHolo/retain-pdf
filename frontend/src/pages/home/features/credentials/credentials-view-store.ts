@@ -132,6 +132,10 @@ export function createCredentialsViewFeature({
     apiKeyInput: null,
     modelBaseUrlInput: null,
     modelNameInput: null,
+    providerProfileIdInput: null,
+    targetLanguageSelect: null,
+    rateLimitQpsInput: null,
+    rateLimitRpmInput: null,
     mathModeSelect: null,
     tokenInputs: {}, // { [providerId]: HTMLInputElement }
   };
@@ -142,6 +146,10 @@ export function createCredentialsViewFeature({
       apiKeyInput: elementsRef.apiKeyInput,
       modelBaseUrlInput: elementsRef.modelBaseUrlInput,
       modelNameInput: elementsRef.modelNameInput,
+      providerProfileIdInput: elementsRef.providerProfileIdInput,
+      targetLanguageSelect: elementsRef.targetLanguageSelect,
+      rateLimitQpsInput: elementsRef.rateLimitQpsInput,
+      rateLimitRpmInput: elementsRef.rateLimitRpmInput,
       mathModeSelect: elementsRef.mathModeSelect,
     };
   }

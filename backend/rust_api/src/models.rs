@@ -16,6 +16,8 @@ mod job;
 mod library;
 #[path = "models/ocr.rs"]
 mod ocr;
+#[path = "models/provider_profile.rs"]
+mod provider_profile;
 #[path = "models/public_contract.rs"]
 mod public_contract;
 #[path = "models/redaction.rs"]
@@ -51,6 +53,11 @@ pub use ocr::{
     OcrArtifactSet, OcrErrorCategory, OcrProviderArtifactLayout, OcrProviderCapabilities,
     OcrProviderCredentialSpec, OcrProviderDiagnostics, OcrProviderErrorInfo, OcrProviderKind,
     OcrProviderOptionSpec, OcrProviderPublicDefinition, OcrTaskHandle, OcrTaskState, OcrTaskStatus,
+};
+pub use provider_profile::{
+    build_provider_profile_id, new_provider_profile_record, provider_profile_view,
+    ProviderCapabilities, ProviderModelListView, ProviderProfileListView, ProviderProfileProbeView,
+    ProviderProfileRecord, ProviderProfileUpsertInput, ProviderProfileView, PROVIDER_ADAPTERS,
 };
 pub use public_contract::{
     public_request_payload, PublicOcrInput, PublicResolvedJobSpec, PublicTranslationInput,

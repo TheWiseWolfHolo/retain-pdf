@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::models::defaults::*;
 
@@ -22,6 +23,20 @@ pub struct GlossaryEntryInput {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct TranslationInput {
+    #[serde(default)]
+    pub provider_profile_id: String,
+    #[serde(default)]
+    pub provider_adapter: String,
+    #[serde(default)]
+    pub provider_request_format: Value,
+    #[serde(default)]
+    pub provider_capabilities: Value,
+    #[serde(default = "default_target_language")]
+    pub target_language: String,
+    #[serde(default)]
+    pub rate_limit_qps: i64,
+    #[serde(default)]
+    pub rate_limit_rpm: i64,
     #[serde(default = "default_mode")]
     pub mode: String,
     #[serde(default = "default_math_mode")]
@@ -71,6 +86,13 @@ pub struct TranslationInput {
 impl Default for TranslationInput {
     fn default() -> Self {
         Self {
+            provider_profile_id: String::new(),
+            provider_adapter: String::new(),
+            provider_request_format: Value::Null,
+            provider_capabilities: Value::Null,
+            target_language: default_target_language(),
+            rate_limit_qps: 0,
+            rate_limit_rpm: 0,
             mode: default_mode(),
             math_mode: default_math_mode(),
             skip_title_translation: false,
@@ -95,6 +117,10 @@ impl Default for TranslationInput {
             workers: 0,
         }
     }
+}
+
+pub fn default_target_language() -> String {
+    "zh-CN".to_string()
 }
 
 pub fn default_translation_context_mode() -> String {

@@ -6,6 +6,7 @@ use crate::services::job_validation::{
     validate_mineru_upload_limits, validate_ocr_provider_request, validate_provider_credentials,
     validate_render_options, validate_translation_credentials,
 };
+use crate::services::provider_profiles::resolve_provider_profile_for_job;
 use crate::storage_paths::resolve_data_path;
 
 use super::context::SnapshotBuildDeps;
@@ -31,7 +32,8 @@ pub(super) fn prepare_full_pipeline_input(
     ctx: &SnapshotBuildDeps<'_>,
     input: &CreateJobInput,
 ) -> Result<PreparedTranslationUpload, AppError> {
-    let input = resolve_task_glossary_request(ctx.db, input)?;
+    let input = resolve_provider_profile_for_job(ctx.db, ctx.config.data_root, input)?;
+    let input = resolve_task_glossary_request(ctx.db, &input)?;
     validate_render_options(&input)?;
     if !input.source.artifact_job_id.trim().is_empty() {
         validate_translation_credentials(&input)?;
@@ -51,7 +53,8 @@ pub(super) fn prepare_translate_only_input(
     ctx: &SnapshotBuildDeps<'_>,
     input: &CreateJobInput,
 ) -> Result<PreparedTranslateOnlyInput, AppError> {
-    let input = resolve_task_glossary_request(ctx.db, input)?;
+    let input = resolve_provider_profile_for_job(ctx.db, ctx.config.data_root, input)?;
+    let input = resolve_task_glossary_request(ctx.db, &input)?;
     validate_render_options(&input)?;
     if input.source.artifact_job_id.trim().is_empty() {
         let _ = require_translation_upload(ctx, &input)?;

@@ -17,6 +17,7 @@ from services.translation.llm.shared.prompt_building import build_single_item_fa
 from services.translation.llm.shared.response_parsing import extract_json_text
 from services.translation.llm.shared.response_parsing import extract_single_item_translation_text
 from services.translation.llm.shared.response_parsing import unwrap_translation_shell
+from services.translation.llm.request_limits import wait_for_request_slot
 
 
 DEFAULT_BASE_URL = "https://api.deepseek.com/v1"
@@ -145,7 +146,9 @@ def _fallback_response_format(response_format: dict[str, Any] | None) -> dict[st
 
 
 def should_use_stream_responses() -> bool:
-    value = os.environ.get(STREAM_RESPONSES_ENV, "")
+    value = os.environ.get("RETAIN_TRANSLATION_STREAM", "") or os.environ.get(
+        STREAM_RESPONSES_ENV, ""
+    )
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
@@ -285,6 +288,7 @@ def request_chat_content(
                     attempt=attempt,
                 )
             _prewarm_dns(base_url, request_label=request_label)
+            wait_for_request_slot()
             if request_label:
                 print(
                     f"{request_label}: http attempt {attempt}/{attempt_limit} -> {model} {chat_completions_url(base_url)} timeout={timeout}s stream={use_stream}",

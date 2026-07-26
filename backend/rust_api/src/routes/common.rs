@@ -152,17 +152,21 @@ pub fn build_auth_route_deps(state: &AppState) -> AuthRouteDeps<'_> {
     }
 }
 
-pub struct ProviderRouteDeps {
+pub struct ProviderRouteDeps<'a> {
     pub mineru_runtime: MineruRuntimeConfig,
     pub paddle_runtime: PaddleRuntimeConfig,
     pub deepseek_runtime: DeepSeekRuntimeConfig,
+    pub db: &'a Db,
+    pub data_root: &'a Path,
 }
 
-pub fn build_provider_route_deps(state: &AppState) -> ProviderRouteDeps {
+pub fn build_provider_route_deps(state: &AppState) -> ProviderRouteDeps<'_> {
     ProviderRouteDeps {
         mineru_runtime: state.config.provider_runtime.mineru.clone(),
         paddle_runtime: state.config.provider_runtime.paddle.clone(),
         deepseek_runtime: state.config.provider_runtime.deepseek.clone(),
+        db: state.db.as_ref(),
+        data_root: &state.config.data_root,
     }
 }
 

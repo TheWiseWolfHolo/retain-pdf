@@ -44,6 +44,13 @@ pub struct PublicOcrInput {
 
 #[derive(Debug, Serialize, Clone)]
 pub struct PublicTranslationInput {
+    pub provider_profile_id: String,
+    pub provider_adapter: String,
+    pub provider_request_format: Value,
+    pub provider_capabilities: Value,
+    pub target_language: String,
+    pub rate_limit_qps: i64,
+    pub rate_limit_rpm: i64,
     pub mode: String,
     pub math_mode: String,
     pub skip_title_translation: bool,
@@ -97,6 +104,13 @@ pub fn public_request_payload(spec: &ResolvedJobSpec) -> PublicResolvedJobSpec {
             options: spec.ocr.options.clone(),
         },
         translation: PublicTranslationInput {
+            provider_profile_id: spec.translation.provider_profile_id.clone(),
+            provider_adapter: spec.translation.provider_adapter.clone(),
+            provider_request_format: spec.translation.provider_request_format.clone(),
+            provider_capabilities: spec.translation.provider_capabilities.clone(),
+            target_language: spec.translation.target_language.clone(),
+            rate_limit_qps: spec.translation.rate_limit_qps,
+            rate_limit_rpm: spec.translation.rate_limit_rpm,
             mode: spec.translation.mode.clone(),
             math_mode: spec.translation.math_mode.clone(),
             skip_title_translation: spec.translation.skip_title_translation,
@@ -113,7 +127,8 @@ pub fn public_request_payload(spec: &ResolvedJobSpec) -> PublicResolvedJobSpec {
             glossary_mode: spec.translation.glossary_mode.clone(),
             memory_mode: spec.translation.memory_mode.clone(),
             api_key: String::new(),
-            api_key_configured: !spec.translation.api_key.trim().is_empty(),
+            api_key_configured: !spec.translation.api_key.trim().is_empty()
+                || !spec.translation.provider_profile_id.trim().is_empty(),
             model: spec.translation.model.clone(),
             base_url: spec.translation.base_url.clone(),
             start_page: spec.translation.start_page,

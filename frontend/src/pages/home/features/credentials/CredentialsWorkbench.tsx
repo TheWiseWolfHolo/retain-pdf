@@ -15,6 +15,7 @@ import { CREDENTIAL_DOM_IDS } from "./credentials-dom-ids.js";
 import { useCredentialsController } from "./useCredentialsController.js";
 import { OcrProviderPanels } from "./OcrProviderPanels.jsx";
 import { DeepSeekPanel } from "./DeepSeekPanel.jsx";
+import { ProviderProfilesPanel } from "./ProviderProfilesPanel.jsx";
 import { TaskOptionsPanel } from "./TaskOptionsPanel.jsx";
 import { Button as ButtonBase } from "../../../../components/Button.jsx";
 
@@ -82,6 +83,7 @@ export function CredentialsWorkbench() {
                 <OcrProviderPanels />
               </section>
               <DeepSeekPanel />
+              <ProviderProfilesPanel />
             </div>
           </TabsPrimitive.Content>
           {/* 不套 TabsPrimitive.Content 的理由见 CredentialsDialog 原注释：
