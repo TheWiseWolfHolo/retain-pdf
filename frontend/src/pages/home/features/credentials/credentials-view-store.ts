@@ -129,7 +129,10 @@ export function createCredentialsViewFeature({
   // .value,不走 React 受控 value/onChange——避免两套写入源打架(蓝图风险 1
   // 的姊妹问题:可见字段虽不是"隐藏 input 桥接"那 4 个,但同样不该双写)。
   const elementsRef: CredentialsElementsRef = {
+    activeOcrTokenInput: null,
     apiKeyInput: null,
+    ocrBaseUrlInput: null,
+    ocrModelInput: null,
     modelBaseUrlInput: null,
     modelNameInput: null,
     providerProfileIdInput: null,
@@ -142,8 +145,10 @@ export function createCredentialsViewFeature({
 
   function elements() {
     return {
-      paddleInput: elementsRef.tokenInputs.paddle || null,
+      paddleInput: elementsRef.activeOcrTokenInput,
       apiKeyInput: elementsRef.apiKeyInput,
+      ocrBaseUrlInput: elementsRef.ocrBaseUrlInput,
+      ocrModelInput: elementsRef.ocrModelInput,
       modelBaseUrlInput: elementsRef.modelBaseUrlInput,
       modelNameInput: elementsRef.modelNameInput,
       providerProfileIdInput: elementsRef.providerProfileIdInput,

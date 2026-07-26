@@ -118,6 +118,25 @@ test("buildOcrPayload maps provider token field and paddle api url", () => {
   assert.equal(payload.page_ranges, "1-3");
 });
 
+test("buildOcrPayload maps custom /v1/ocr settings", () => {
+  const payload = buildOcrPayload({
+    pageRanges: "",
+    ocrProvider: "custom_ocr",
+    ocrToken: "custom-ocr-key",
+    developerConfig: {
+      ocrBaseUrl: "https://ocr.example/v1",
+      ocrModel: "mistral-ocr",
+    },
+    defaultPaddleApiUrl: () => "",
+    constants,
+  });
+
+  assert.equal(payload.provider, "custom_ocr");
+  assert.equal(payload.custom_ocr_api_key, "custom-ocr-key");
+  assert.equal(payload.custom_ocr_base_url, "https://ocr.example/v1");
+  assert.equal(payload.custom_ocr_model, "mistral-ocr");
+});
+
 test("buildSourcePayload and buildRenderPayload preserve render-only inputs", () => {
   const source = buildSourcePayload({
     workflow: "render",

@@ -173,6 +173,7 @@ pub fn validate_mineru_upload_limits(
                 true,
             )?;
         }
+        OcrProviderKind::Custom => {}
         OcrProviderKind::Local => {}
         OcrProviderKind::Unknown => {}
     }
@@ -264,6 +265,20 @@ fn validate_provider_token(
             "{field_name} looks like a URL, not a {display_name} API key; check whether frontend fields were mixed up",
         )));
     }
+    if matches!(provider_kind, OcrProviderKind::Custom) {
+        let base_url = input.ocr.custom_ocr_base_url.trim();
+        if base_url.is_empty() {
+            return Err(AppError::bad_request("custom_ocr_base_url is required"));
+        }
+        if !looks_like_url(base_url) {
+            return Err(AppError::bad_request(
+                "custom_ocr_base_url must start with http:// or https://",
+            ));
+        }
+        if input.ocr.custom_ocr_model.trim().is_empty() {
+            return Err(AppError::bad_request("custom_ocr_model is required"));
+        }
+    }
     Ok(())
 }
 
@@ -285,6 +300,15 @@ mod tests {
     fn local_input() -> CreateJobInput {
         let mut input = CreateJobInput::default();
         input.ocr.provider = "local".to_string();
+        input
+    }
+
+    fn custom_ocr_input() -> CreateJobInput {
+        let mut input = CreateJobInput::default();
+        input.ocr.provider = "custom_ocr".to_string();
+        input.ocr.custom_ocr_api_key = "custom-key".to_string();
+        input.ocr.custom_ocr_base_url = "https://ocr.example/v1".to_string();
+        input.ocr.custom_ocr_model = "mistral-ocr".to_string();
         input
     }
 
@@ -335,6 +359,11 @@ mod tests {
             &default_limits()
         )
         .is_ok());
+    }
+
+    #[test]
+    fn custom_ocr_accepts_explicit_v1_ocr_settings() {
+        assert!(validate_ocr_provider_request(&custom_ocr_input()).is_ok());
     }
 
     #[test]

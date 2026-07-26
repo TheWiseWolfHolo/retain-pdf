@@ -10,6 +10,8 @@ export function syncCredentialDialogFields({
 }: any) {
   const {
     paddleInput,
+    ocrBaseUrlInput,
+    ocrModelInput,
     apiKeyInput,
     modelBaseUrlInput,
     modelNameInput,
@@ -22,6 +24,12 @@ export function syncCredentialDialogFields({
 
   if (paddleInput) {
     paddleInput.value = credentials.paddleToken || "";
+  }
+  if (ocrBaseUrlInput) {
+    ocrBaseUrlInput.value = taskOptions.ocrBaseUrl || taskOptions.ocr_base_url || "https://api.mistral.ai";
+  }
+  if (ocrModelInput) {
+    ocrModelInput.value = taskOptions.ocrModel || taskOptions.ocr_model || "mistral-ocr-latest";
   }
   if (apiKeyInput) {
     // 只展示设置里已存的 Key，不从 runtime 回填（避免「设置空白却仍能问答」）

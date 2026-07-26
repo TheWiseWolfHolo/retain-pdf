@@ -54,6 +54,27 @@
         }
       }
     },
+    "custom_ocr": {
+      "display_name": "Custom OCR (/v1/ocr)",
+      "kind": "remote",
+      "credential": {
+        "field": "custom_ocr_api_key",
+        "env": "RETAIN_CUSTOM_OCR_API_KEY",
+        "required_for": ["local_upload"]
+      },
+      "options": {
+        "custom_ocr_base_url": {
+          "type": "string",
+          "default": "https://api.mistral.ai",
+          "required": true
+        },
+        "custom_ocr_model": {
+          "type": "string",
+          "default": "mistral-ocr-latest",
+          "required": true
+        }
+      }
+    },
     "local": {
       "display_name": "Local OCR",
       "kind": "local_command",

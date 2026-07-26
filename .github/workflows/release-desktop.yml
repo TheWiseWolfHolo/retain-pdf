@@ -200,6 +200,7 @@ jobs:
             desktop/win/RetainPDF-Windows-${{ steps.version.outputs.version }}-Setup.exe
 
   build-linux-release:
+    if: ${{ false }} # Fork releases are Windows-only.
     runs-on: ubuntu-latest
 
     steps:
@@ -433,6 +434,7 @@ jobs:
             desktop/linux/RetainPDF-Linux-${{ steps.version.outputs.version }}.deb
 
   build-macos-release:
+    if: ${{ false }} # Fork releases are Windows-only.
     runs-on: macos-latest
 
     steps:

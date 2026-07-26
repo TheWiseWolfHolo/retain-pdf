@@ -165,7 +165,10 @@ export type HandlersBag = {
 };
 
 export type CredentialsElementsRef = {
+  activeOcrTokenInput: HTMLInputElement | null;
   apiKeyInput: HTMLInputElement | null;
+  ocrBaseUrlInput: HTMLInputElement | null;
+  ocrModelInput: HTMLInputElement | null;
   modelBaseUrlInput: HTMLInputElement | null;
   modelNameInput: HTMLInputElement | null;
   providerProfileIdInput: HTMLSelectElement | null;

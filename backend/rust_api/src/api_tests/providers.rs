@@ -29,6 +29,10 @@ async fn list_ocr_providers_returns_public_contract() {
         .iter()
         .find(|item| item["key"] == "local")
         .expect("local provider");
+    let custom = providers
+        .iter()
+        .find(|item| item["key"] == "custom_ocr")
+        .expect("custom OCR provider");
 
     assert_eq!(paddle["display_name"], "PaddleOCR");
     assert_eq!(paddle["provider_kind"], "remote");
@@ -42,6 +46,15 @@ async fn list_ocr_providers_returns_public_contract() {
     assert_eq!(
         paddle["options"]["paddle_model"]["aliases"]["paddleocr-vl"],
         "PaddleOCR-VL-1.6"
+    );
+    assert_eq!(custom["display_name"], "Custom OCR (/v1/ocr)");
+    assert_eq!(
+        custom["credential"]["field"],
+        "custom_ocr_api_key"
+    );
+    assert_eq!(
+        custom["options"]["custom_ocr_base_url"]["default"],
+        "https://api.mistral.ai"
     );
     assert_eq!(local["provider_kind"], "local_command");
     assert!(local["credential"].is_null());

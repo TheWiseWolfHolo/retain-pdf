@@ -17,6 +17,22 @@ export const OCR_PROVIDER_DEFINITIONS = [
     docsLabel: "获取 Token",
     supportsValidation: true,
   },
+  {
+    id: "custom_ocr",
+    label: "自定义 OCR",
+    description: "Mistral / LiteLLM 兼容的 POST /v1/ocr。",
+    tokenField: "custom_ocr_api_key",
+    runtimeConfigKey: "paddleToken",
+    tokenLabel: "OCR API Key",
+    tokenPlaceholder: "OCR API Key",
+    validationButtonLabel: "",
+    validationIdleMessage: "",
+    validationMissingMessage: "请先填写 OCR API Key。",
+    validationUnavailableMessage: "接口将在提交 PDF 时验证。",
+    docsUrl: "https://docs.litellm.ai/docs/ocr",
+    docsLabel: "接口格式",
+    supportsValidation: false,
+  },
 ];
 
 export const TRANSLATION_PROVIDER_DEFINITION = {

@@ -188,6 +188,30 @@ fn legacy_provider_definitions() -> serde_json::Map<String, Value> {
             }
         }),
     );
+    providers.insert(
+        "custom_ocr".to_string(),
+        serde_json::json!({
+            "display_name": "Custom OCR (/v1/ocr)",
+            "kind": "remote",
+            "credential": {
+                "field": "custom_ocr_api_key",
+                "env": "RETAIN_CUSTOM_OCR_API_KEY",
+                "required_for": ["local_upload"]
+            },
+            "options": {
+                "custom_ocr_base_url": {
+                    "type": "string",
+                    "default": "https://api.mistral.ai",
+                    "required": true
+                },
+                "custom_ocr_model": {
+                    "type": "string",
+                    "default": "mistral-ocr-latest",
+                    "required": true
+                }
+            }
+        }),
+    );
     providers
 }
 

@@ -3,7 +3,12 @@ use serde_json::{Map, Value};
 use super::input::ResolvedJobSpec;
 
 const REDACTED_SECRET: &str = "[REDACTED]";
-const SENSITIVE_JSON_KEYS: &[&str] = &["api_key", "mineru_token", "paddle_token"];
+const SENSITIVE_JSON_KEYS: &[&str] = &[
+    "api_key",
+    "mineru_token",
+    "paddle_token",
+    "custom_ocr_api_key",
+];
 
 // Keys under `ocr.options` that worker_process.rs treats as credentials for
 // configured (option-sourced) OCR providers, exported as RETAIN_OCR_CREDENTIAL.
@@ -15,6 +20,7 @@ pub fn sensitive_values(spec: &ResolvedJobSpec) -> Vec<String> {
         spec.translation.api_key.trim(),
         spec.ocr.mineru_token.trim(),
         spec.ocr.paddle_token.trim(),
+        spec.ocr.custom_ocr_api_key.trim(),
     ]
     .into_iter()
     .filter(|value| !value.is_empty())

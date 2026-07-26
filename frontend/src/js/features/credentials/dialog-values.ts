@@ -3,6 +3,8 @@ import { createCredentialDialogElementsPort } from "./dialog-elements-port.js";
 /** Values read from the browser credential dialog inputs. */
 export interface CredentialDialogValues {
   paddleToken: string;
+  ocrBaseUrl: string;
+  ocrModel: string;
   modelApiKey: string;
   modelBaseUrl: string;
   modelName: string;
@@ -15,6 +17,8 @@ export interface CredentialDialogValues {
 
 export interface CredentialDialogElementsLike {
   paddleInput?: { value?: string } | null;
+  ocrBaseUrlInput?: { value?: string } | null;
+  ocrModelInput?: { value?: string } | null;
   apiKeyInput?: { value?: string } | null;
   modelBaseUrlInput?: { value?: string } | null;
   modelNameInput?: { value?: string } | null;
@@ -41,6 +45,7 @@ export interface BuildTaskOptionsFromDialogValuesOptions {
   values: Pick<
     CredentialDialogValues,
     "modelName" | "modelBaseUrl" | "providerProfileId" | "targetLanguage"
+      | "ocrBaseUrl" | "ocrModel"
       | "rateLimitQps" | "rateLimitRpm" | "mathMode"
   >;
   defaultModelBaseUrl?: () => string;
@@ -51,6 +56,8 @@ export function readCredentialDialogValues({
 }: ReadCredentialDialogValuesOptions = {}): CredentialDialogValues {
   const {
     paddleInput,
+    ocrBaseUrlInput,
+    ocrModelInput,
     apiKeyInput,
     modelBaseUrlInput,
     modelNameInput,
@@ -62,6 +69,8 @@ export function readCredentialDialogValues({
   } = elementsPort.elements();
   return {
     paddleToken: paddleInput?.value?.trim() || "",
+    ocrBaseUrl: ocrBaseUrlInput?.value?.trim() || "https://api.mistral.ai",
+    ocrModel: ocrModelInput?.value?.trim() || "mistral-ocr-latest",
     modelApiKey: apiKeyInput?.value?.trim() || "",
     modelBaseUrl: modelBaseUrlInput?.value?.trim() || "",
     modelName: modelNameInput?.value?.trim() || "",
@@ -94,6 +103,8 @@ export function buildTaskOptionsFromDialogValues({
     model: values.modelName,
     baseUrl: values.modelBaseUrl || defaultModelBaseUrl?.() || "",
     providerProfileId: values.providerProfileId,
+    ocrBaseUrl: values.ocrBaseUrl,
+    ocrModel: values.ocrModel,
     targetLanguage: values.targetLanguage,
     rateLimitQps: values.rateLimitQps,
     rateLimitRpm: values.rateLimitRpm,
